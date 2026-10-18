@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#f6f6f7">
+<title>Your Home Value Report | Criterion Real Estate</title>
+<meta property="og:title" content="Your Home Value Report | Criterion Real Estate">
+<meta property="og:description" content="Your market analysis from the Criterion Real Estate team.">
+<meta property="og:image" content="https://criterion-marketing.github.io/home-value/home-worth-share.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="../favicon.png">
+<link rel="preload" as="image" href="../criterion-logo.png">
+<style>
+  /* Brand tokens from the home-value site (src/styles.css) */
+  :root{
+    --bg:#f6f6f7;--bg:oklch(0.97 0.002 286);
+    --fg:#1d1d20;--fg:oklch(0.21 0.003 286);
+    --muted:#6e6e76;--muted:oklch(0.52 0.006 286);
+    --line:#e3e3e6;--line:oklch(0.91 0.004 286);
+    --accent:#7a4fd1;--accent:oklch(0.55 0.15 295);
+    --font:-apple-system,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif;
+    --dur:1.05s;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  main{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;
+    padding:max(32px,env(safe-area-inset-top)) 28px max(32px,env(safe-area-inset-bottom));text-align:center}
+  .stage{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center}
+  .logo{width:min(208px,58vw);height:auto;display:block;opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) .05s forwards}
+  /* thin progress line: fills over ~1.3 s, with a soft light sweeping across */
+  .track{position:relative;width:min(168px,46vw);height:2px;margin:34px 0 38px;border-radius:2px;background:var(--line);overflow:hidden;opacity:0;animation:fade .4s ease .2s forwards}
+  .fill{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,var(--fg),var(--accent));transform-origin:left;transform:scaleX(0);
+    animation:fill var(--dur) cubic-bezier(.65,.05,.36,1) .2s forwards}
+  .fill::after{content:"";position:absolute;inset:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);
+    transform:translateX(-120%);animation:sweep 1.1s ease-in-out .5s infinite}
+  h1{margin:0;font-size:1.25rem;line-height:1.3;font-weight:600;letter-spacing:-.02em;opacity:0;animation:rise .6s cubic-bezier(.2,.7,.2,1) .35s forwards}
+  .brand{margin:14px 0 0;font-size:.6875rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);opacity:0;animation:rise .6s cubic-bezier(.2,.7,.2,1) .5s forwards}
+  .note{margin:30px 0 0;font-size:.875rem;color:var(--muted);animation:fade .4s ease forwards}
+  .note a,.err a.call{color:var(--fg);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+  .err p{margin:12px 0 0;font-size:.9375rem;line-height:1.5;color:var(--muted);opacity:0;animation:rise .6s cubic-bezier(.2,.7,.2,1) .45s forwards}
+  .err .rule{width:min(168px,46vw);height:2px;margin:34px 0 38px;border-radius:2px;background:var(--line);opacity:0;animation:fade .4s ease .2s forwards}
+  .err .btn{display:inline-block;margin-top:26px;padding:12px 22px;border-radius:999px;background:var(--fg);color:#fff;font-size:.9375rem;font-weight:500;
+    text-decoration:none;letter-spacing:-.01em;opacity:0;animation:rise .6s cubic-bezier(.2,.7,.2,1) .6s forwards}
+  .err p.brand{margin:26px 0 0;font-size:.6875rem;line-height:1.5;color:var(--muted);animation-delay:.75s}
+  h1,p{text-wrap:balance}
+  [hidden]{display:none!important}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes fill{to{transform:scaleX(1)}}
+  @keyframes sweep{to{transform:translateX(320%)}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .logo,.track,h1,.brand,.err p,.err .rule,.err .btn{opacity:1}
+    .fill{transform:scaleX(.6)}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="stage" id="loading" role="status" aria-live="polite">
+    <img class="logo" src="../criterion-logo.png" alt="Criterion Real Estate" width="1200" height="276">
+    <div class="track" aria-hidden="true"><div class="fill"></div></div>
+    <h1>Preparing your home value report</h1>
+    <p class="brand">Criterion Real Estate</p>
+    <p class="note" id="fallback" hidden>Not opening? <a id="fallbackLink" href="#">View your report</a></p>
+  </div>
+  <div class="stage err" id="bad" hidden>
+    <img class="logo" src="../criterion-logo.png" alt="Criterion Real Estate" width="1200" height="276">
+    <div class="rule" aria-hidden="true"></div>
+    <h1>This report link isn't working</h1>
+    <p>Call or text our team and we'll send you a fresh copy.</p>
+    <a class="btn" href="tel:+14758975114">(475) 897-5114</a>
+    <p class="brand">Criterion Real Estate</p>
+  </div>
+  <noscript><div class="stage"><p class="note">Please call or text our team at <a href="tel:+14758975114">(475) 897-5114</a> for your report.</p></div></noscript>
+</main>
+<script>
+(function () {
+  // Logs the open to the Criterion Apps Script web app, then always sends the visitor to the Cloud CMA PDF.
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbwcpeKoRHzPK2Vbdo5vTW_G8iIvSOhKQIMi0RbnQAMwPJZ39it3tr9JBRPZMmQCGHdS/exec";
+  var REDIRECT_MS = 1300, MIN_VISIBLE_MS = 300; // hold the loading screen ~1.3 s so it is seen
+  var BOT_RE = /[a-z]bot\/|[a-z]bot;|\bbot\b|bot\.html|\+https?:\/\/|crawl|spider|slurp|preview|facebookexternalhit|facebot|whatsapp|telegram|discord|skypeuripreview|embedly|quora link|pinterest\/|vkshare|w3c_validator|headless|phantomjs|selenium|puppeteer|lighthouse|curl\/|wget|python|go-http|java\/|okhttp|axios|node-fetch|httpclient|google-inspectiontool|iframely|outbrain|nuzzel/i;
+
+  var q = new URLSearchParams(location.search);
+  var c = (q.get("c") || "").trim().toLowerCase();
+  var test = /^(1|true|yes)$/i.test(q.get("t") || "");
+  if (!/^[0-9a-f]{32}$/.test(c)) {
+    document.getElementById("loading").hidden = true;
+    document.getElementById("bad").hidden = false;
+    document.title = "Report link not working | Criterion Real Estate";
+    return;
+  }
+  var pdf = "https://cloudcma.com/pdf/" + c;
+  document.getElementById("fallbackLink").href = pdf;
+  setTimeout(function () { document.getElementById("fallback").hidden = false; }, 3000);
+
+  var ua = navigator.userAgent || "";
+  var isBot = !ua || BOT_RE.test(ua) || navigator.webdriver === true;
+  var sent = false, visMs = 0, visSince = document.visibilityState === "visible" ? Date.now() : 0;
+
+  function visibleNow() { return visMs + (visSince ? Date.now() - visSince : 0); }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") { if (!visSince) visSince = Date.now(); }
+    else if (visSince) { visMs += Date.now() - visSince; visSince = 0; }
+  });
+
+  function beacon() {
+    if (sent || isBot) return;
+    var v = visibleNow();
+    if (v < MIN_VISIBLE_MS) return;
+    sent = true;
+    var body = JSON.stringify({ type: "cma_view", c: c, t: test ? 1 : 0, ua: ua.slice(0, 300),
+      ref: (document.referrer || "").slice(0, 300), visible: Math.round(v), ts: new Date().toISOString() });
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(ENDPOINT, new Blob([body], { type: "text/plain;charset=utf-8" }))) return;
+    } catch (e) {}
+    try {
+      fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, credentials: "omit",
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, body: body }).catch(function () {});
+    } catch (e) {}
+  }
+
+  var poll = setInterval(beacon, 50);
+  setTimeout(function () {
+    clearInterval(poll);
+    beacon(); // last chance if visible long enough
+    location.replace(pdf);
+  }, REDIRECT_MS);
+})();
+</script>
+</body>
+</html>
