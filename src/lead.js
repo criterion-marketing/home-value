@@ -70,7 +70,7 @@ export function validate(key, value) {
   return null;
 }
 
-/** Columns the 15-minute lead routine reads. `source` is omitted; the database defaults it. */
+/** Fields the Apps Script web app stores; the 15-minute lead routine reads them from the sheet. */
 export function buildLeadPayload(fields, smsConsent, utm) {
   return {
     name: fields.name.trim() || null,

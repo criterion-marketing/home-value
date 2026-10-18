@@ -122,23 +122,40 @@ function setSending(sending) {
   button.textContent = sending ? "Sending…" : "Get my free market analysis";
 }
 
+async function postLead(payload) {
+  const body = JSON.stringify(payload);
+  try {
+    // text/plain keeps this a CORS "simple request": no preflight, and Apps Script's
+    // redirected response is readable.
+    const response = await fetch(site.leadEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body,
+      redirect: "follow",
+    });
+    if (!response.ok) throw new Error(String(response.status));
+    const result = await response.json();
+    if (!result || result.ok !== true) throw new Error(result?.error || "rejected");
+  } catch (error) {
+    // Network or CORS read failure: send once more opaquely. The script drops repeats,
+    // so a lead that already landed is not duplicated.
+    if (!(error instanceof TypeError)) throw error;
+    await fetch(site.leadEndpoint, { method: "POST", mode: "no-cors", body });
+  }
+}
+
 async function submit() {
   if (state.sending || state.step !== STEPS.length - 1) return;
   setSending(true);
   showError("");
   try {
-    const payload = buildLeadPayload(state.fields, state.sms, state.utm);
-    const response = await fetch(`${site.supabaseUrl.replace(/\/$/, "")}/rest/v1/leads`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        apikey: site.supabaseKey,
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify(payload),
+    await postLead({
+      ...buildLeadPayload(state.fields, state.sms, state.utm),
+      page_url: window.location.href.slice(0, 500),
+      referrer: document.referrer.slice(0, 500),
+      user_agent: navigator.userAgent.slice(0, 300),
+      company_website: document.getElementById("company_website")?.value ?? "",
     });
-    if (!response.ok) throw new Error(String(response.status));
     setSending(false);
     setStep(STEPS.length);
   } catch {
