@@ -1,6 +1,6 @@
 # What's My Home Worth?
 
-Static lead page for Criterion Real Estate LLC, licensed in Connecticut and New York. A visitor answers one question at a time and the page inserts a single row into the existing `public.leads` table. There is no account system, no analytics, and no tracker.
+Static lead page for Criterion Real Estate LLC, licensed in Connecticut and New York. A visitor answers one question at a time and the page posts the answers to a Google Apps Script web app, which appends one row to the **Web Submissions** tab of the *Criterion Home Value Leads* Google Sheet (owned by dan@durantehomegroup.com). There is no account system, no analytics, and no tracker.
 
 ## Run locally
 
@@ -20,25 +20,24 @@ npm run preview
 
 `npm run build` writes `dist/`. The Vite `base` is `/home-value/`, so asset URLs resolve on GitHub Pages at `https://criterion-marketing.github.io/home-value/`.
 
-## Configure the page URL and Supabase
+## Configure the page URL and lead endpoint
 
 All public settings live in [`site.config.js`](site.config.js):
 
 | Setting | Purpose |
 | --- | --- |
 | `pageUrl` | Canonical URL, `og:url`, and the absolute share-image URL. Set this to the deployed page, with a trailing slash, then rebuild. |
-| `supabaseUrl` | Lovable Cloud / Supabase project URL. The form posts to `{supabaseUrl}/rest/v1/leads`. |
-| `supabaseKey` | Public publishable key. Sent as the `apikey` header. It is not a service-role key. |
+| `leadEndpoint` | The Apps Script web app `/exec` URL (deployed as dan@durantehomegroup.com, access "Anyone"). |
 
-The key is the same publishable key already shipped in the previous frontend. Anonymous clients may insert a lead and cannot read the table, so the request uses `Prefer: return=minimal` and does not ask for the new row.
+The form sends one `POST` with `Content-Type: text/plain` and a JSON body, so browsers send no CORS preflight. The script returns `{"ok":true}`. If the response can't be read, the page retries once with `mode: "no-cors"`, and the script drops repeats within 2 minutes.
 
-The insert body is exactly these columns:
+The body carries these fields:
 
-`name`, `address`, `phone`, `email`, `timeline`, `notes`, `sms_consent`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `src`
+`name`, `address`, `phone`, `email`, `timeline`, `notes`, `sms_consent`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `src`, `page_url`, `referrer`, `user_agent`, `company_website` (hidden spam trap; must be empty)
 
-`source` is not sent. The database fills that column itself. `utm_*` and `src` are copied from the page URL, each trimmed to 200 characters, and stored as null when absent. `?name=` and `?address=` prefill those answers.
+`utm_*` and `src` are copied from the page URL, each trimmed to 200 characters, and sent as null when absent. `?name=` and `?address=` prefill those answers. The script fills `Source` with "thanks.io QR".
 
-Do not change the column list. A scheduled routine reads this table.
+Do not rename the sheet columns. A scheduled routine reads the Web Submissions tab.
 
 ## Deploy
 
@@ -63,7 +62,7 @@ To publish by hand, run `npm run build` and upload the contents of `dist/`. Keep
 - Output directory: `dist`
 - Set `pageUrl` to the Vercel URL before building.
 
-No environment variables are required. The publishable key is intentionally public and is limited by row-level security to inserts.
+No environment variables are required. The page holds no secrets; the endpoint can only append rows.
 
 ## What's on the page
 

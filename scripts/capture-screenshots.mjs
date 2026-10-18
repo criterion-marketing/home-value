@@ -154,7 +154,7 @@ async function runBrowser() {
   await page.setRequestInterception(true);
   page.on("request", (request) => {
     const url = request.url();
-    if (!url.includes("/rest/v1/leads")) {
+    if (!url.startsWith(site.leadEndpoint)) {
       request.continue();
       return;
     }
@@ -163,7 +163,7 @@ async function runBrowser() {
         status: 204,
         headers: {
           "access-control-allow-origin": new URL(base).origin,
-          "access-control-allow-headers": "apikey,content-type,prefer,accept",
+          "access-control-allow-headers": "content-type",
           "access-control-allow-methods": "POST, OPTIONS",
         },
       });
@@ -184,9 +184,9 @@ async function runBrowser() {
       return;
     }
     request.respond({
-      status: 201,
-      headers: { "access-control-allow-origin": new URL(base).origin },
-      body: "",
+      status: 200,
+      headers: { "access-control-allow-origin": "*", "content-type": "application/json" },
+      body: JSON.stringify({ ok: true, id: "test" }),
     });
   });
 
@@ -247,8 +247,8 @@ async function runBrowser() {
 
   const post = posts.at(-1);
   assert.ok(post, "expected an intercepted lead insert");
-  assert.equal(post.headers.prefer, "return=minimal");
-  assert.equal(post.headers.apikey, site.supabaseKey);
+  assert.match(post.headers["content-type"], /^text\/plain/);
+  assert.equal(post.headers.apikey, undefined);
   assert.equal(post.headers.authorization, undefined);
   const body = JSON.parse(post.body);
   assert.equal(body.address, "123 Main Street, Town, State");
@@ -259,6 +259,7 @@ async function runBrowser() {
   assert.equal(body.sms_consent, false);
   assert.equal(body.notes.startsWith("Fresh paint"), true);
   assert.equal("source" in body, false);
+  assert.equal(body.company_website, "");
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   await page.goto(`${base}/`, { waitUntil: "networkidle0" });
