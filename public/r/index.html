@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Your Home Value Report | Criterion Real Estate</title>
+<meta property="og:title" content="Your Home Value Report | Criterion Real Estate">
+<meta property="og:description" content="Your market analysis from the Criterion Real Estate team.">
+<meta property="og:image" content="https://criterion-marketing.github.io/home-value/home-worth-share.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="../favicon.png">
+<style>
+  html,body{margin:0;height:100%;background:#fff;color:#1f2a37;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
+  img{width:180px;max-width:60vw;height:auto;margin-bottom:28px}
+  p{margin:6px 0;font-size:17px;line-height:1.45}
+  .spin{width:28px;height:28px;border:3px solid #e5e7eb;border-top-color:#1f2a37;border-radius:50%;animation:s .8s linear infinite;margin:18px auto 0}
+  @keyframes s{to{transform:rotate(360deg)}}
+  a{color:#1f4e8c}
+  .small{font-size:14px;color:#6b7280;margin-top:18px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <img src="../criterion-logo.png" alt="Criterion Real Estate">
+  <div id="loading">
+    <p>Opening your report…</p>
+    <div class="spin" aria-hidden="true"></div>
+    <p class="small" id="fallback" hidden>Not opening? <a id="fallbackLink" href="#">Tap here to view your report</a>.</p>
+  </div>
+  <div id="bad" hidden>
+    <p>Sorry, this report link isn't working.</p>
+    <p>Call or text our team at <a href="tel:+14758975114">(475) 897-5114</a> and we'll send you a fresh copy.</p>
+  </div>
+  <noscript><p class="small">Please call or text our team at <a href="tel:+14758975114">(475) 897-5114</a> for your report.</p></noscript>
+</main>
+<script>
+(function () {
+  // Logs the open to the Criterion Apps Script web app, then always sends the visitor to the Cloud CMA PDF.
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbwcpeKoRHzPK2Vbdo5vTW_G8iIvSOhKQIMi0RbnQAMwPJZ39it3tr9JBRPZMmQCGHdS/exec";
+  var REDIRECT_MS = 700, MIN_VISIBLE_MS = 300;
+  var BOT_RE = /[a-z]bot\/|[a-z]bot;|\bbot\b|bot\.html|\+https?:\/\/|crawl|spider|slurp|preview|facebookexternalhit|facebot|whatsapp|telegram|discord|skypeuripreview|embedly|quora link|pinterest\/|vkshare|w3c_validator|headless|phantomjs|selenium|puppeteer|lighthouse|curl\/|wget|python|go-http|java\/|okhttp|axios|node-fetch|httpclient|google-inspectiontool|iframely|outbrain|nuzzel/i;
+
+  var q = new URLSearchParams(location.search);
+  var c = (q.get("c") || "").trim().toLowerCase();
+  var test = /^(1|true|yes)$/i.test(q.get("t") || "");
+  if (!/^[0-9a-f]{32}$/.test(c)) {
+    document.getElementById("loading").hidden = true;
+    document.getElementById("bad").hidden = false;
+    return;
+  }
+  var pdf = "https://cloudcma.com/pdf/" + c;
+  document.getElementById("fallbackLink").href = pdf;
+  setTimeout(function () { document.getElementById("fallback").hidden = false; }, 2500);
+
+  var ua = navigator.userAgent || "";
+  var isBot = !ua || BOT_RE.test(ua) || navigator.webdriver === true;
+  var sent = false, visMs = 0, visSince = document.visibilityState === "visible" ? Date.now() : 0;
+
+  function visibleNow() { return visMs + (visSince ? Date.now() - visSince : 0); }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") { if (!visSince) visSince = Date.now(); }
+    else if (visSince) { visMs += Date.now() - visSince; visSince = 0; }
+  });
+
+  function beacon() {
+    if (sent || isBot) return;
+    var v = visibleNow();
+    if (v < MIN_VISIBLE_MS) return;
+    sent = true;
+    var body = JSON.stringify({ type: "cma_view", c: c, t: test ? 1 : 0, ua: ua.slice(0, 300),
+      ref: (document.referrer || "").slice(0, 300), visible: Math.round(v), ts: new Date().toISOString() });
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(ENDPOINT, new Blob([body], { type: "text/plain;charset=utf-8" }))) return;
+    } catch (e) {}
+    try {
+      fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, credentials: "omit",
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, body: body }).catch(function () {});
+    } catch (e) {}
+  }
+
+  var poll = setInterval(beacon, 50);
+  setTimeout(function () {
+    clearInterval(poll);
+    beacon(); // last chance if visible long enough
+    location.replace(pdf);
+  }, REDIRECT_MS);
+})();
+</script>
+</body>
+</html>
