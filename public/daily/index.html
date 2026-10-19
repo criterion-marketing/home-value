@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Criterion Daily</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="To Do">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#FFFFFF">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleapis.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none';">
+<meta name="referrer" content="no-referrer">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<script src="config.js"></script>
+<script src="app-api.js"></script>
+<style>
+  :root {
+    color-scheme:light;
+    --bg:#F7F7F9; --card:#FFFFFF; --label:#1C1C1E; --label2:#6E6E73; --label3:#6E6E73; --hint:#8E8E93;
+    --sep:rgba(60,60,67,.18); --fill:#F0F0F3; --press:#EDEDF0; --blue:#0066CC; --red:#D70015;
+    --red-fill:rgba(255,59,48,.10); --nav:rgba(252,252,253,.82); --ring:#B4B4BA;
+    --card-edge:rgba(0,0,0,.06); --card-shadow:0 1px 2px rgba(17,17,26,.04), 0 4px 16px rgba(17,17,26,.035);
+    --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+    --safe-l:env(safe-area-inset-left); --safe-r:env(safe-area-inset-right);
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { background:linear-gradient(180deg,#FFFFFF 0,#FBFBFC 260px,#F7F7F9 640px) no-repeat, var(--bg); min-height:100%; }
+  body { background:transparent; min-height:100vh; display:flow-root; }
+  body { margin:0; color:var(--label); -webkit-font-smoothing:antialiased;
+    font:17px/1.29 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",Arial,sans-serif;
+    letter-spacing:-.41px; -webkit-text-size-adjust:100%; overscroll-behavior-y:none; }
+  button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; }
+
+  /* Translucent nav bar */
+  #nav { position:fixed; top:0; left:0; right:0; z-index:20; height:calc(var(--safe-t) + 44px);
+    padding:var(--safe-t) calc(var(--safe-r) + 8px) 0 calc(var(--safe-l) + 16px);
+    display:flex; align-items:center; justify-content:center; background:transparent;
+    transition:background-color .2s, box-shadow .2s; }
+  #nav.scrolled { background:var(--nav); -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px);
+    box-shadow:0 .5px 0 var(--sep); }
+  #navtitle { font-size:17px; font-weight:600; opacity:0; transition:opacity .2s; }
+  #nav.scrolled #navtitle { opacity:1; }
+  #refresh { position:absolute; right:calc(var(--safe-r) + 8px); bottom:0; width:44px; height:44px;
+    display:flex; align-items:center; justify-content:center; color:var(--blue); transition:transform .12s, opacity .12s; }
+  #refresh:active { transform:scale(.88); opacity:.6; }
+  #refresh svg { width:22px; height:22px; }
+  .spin { animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* Pull to refresh */
+  #ptr { height:0; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--label2);
+    transition:height .2s; margin-top:calc(var(--safe-t) + 44px); }
+  #ptr svg { width:22px; height:22px; }
+
+  main { padding:0 calc(var(--safe-r) + 16px) calc(var(--safe-b) + 40px) calc(var(--safe-l) + 16px); max-width:680px; margin:0 auto; }
+  .large { padding:2px 4px 6px; }
+  h1 { margin:0; font-size:34px; line-height:41px; font-weight:700; letter-spacing:.37px; }
+  #date { font-size:17px; color:var(--label2); margin-top:1px; }
+  #updated { font-size:12px; color:var(--label3); margin-top:4px; letter-spacing:0; min-height:15px; }
+
+  /* Inset grouped lists */
+  section { margin-top:22px; }
+  section h2 { margin:0 0 7px; padding:0 16px; font-size:13px; line-height:18px; font-weight:400; letter-spacing:-.08px;
+    text-transform:uppercase; color:var(--label2); display:flex; justify-content:space-between; }
+  .card { background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 0 0 .5px var(--card-edge), var(--card-shadow); }
+  .task, .addrow, .addform { position:relative; display:flex; gap:12px; align-items:flex-start; padding:11px 16px 11px 16px;
+    min-height:44px; cursor:pointer; user-select:none; -webkit-user-select:none; transition:background-color .25s; }
+  .task { background:var(--card); touch-action:pan-y; -webkit-touch-callout:none; will-change:transform; z-index:1; }
+  .task:active { background:var(--press); transition:none; }
+  .swipe { position:relative; overflow:hidden; }
+  .swipe.collapsing { transition:height .28s ease, opacity .28s ease; }
+  .del-bg { position:absolute; inset:0; background:#FF3B30; visibility:hidden; }
+  .swipe.swiping .del-bg, .swipe.revealed .del-bg, .swipe.collapsing .del-bg { visibility:visible; }
+  .delbtn { position:absolute; top:0; right:0; bottom:0; min-width:88px; padding:0 16px; color:#fff; font-size:17px; font-weight:400;
+    letter-spacing:-.41px; display:flex; align-items:center; justify-content:center; }
+  .delbtn:active { background:rgba(0,0,0,.12); }
+  .task.anim { transition:transform .3s cubic-bezier(.2,.8,.2,1), background-color .25s; }
+  .swipe + .swipe > .task::before, .swipe + .addrow::before, .swipe + .addform::before, .addform + .addrow::before {
+    content:""; position:absolute; top:0; left:52px; right:0; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .circle { flex:0 0 24px; height:24px; margin-top:-1px; border-radius:50%; border:1.5px solid var(--ring);
+    display:flex; align-items:center; justify-content:center; transition:background-color .2s, border-color .2s, transform .15s; }
+  .task:active .circle { transform:scale(.86); }
+  .circle svg { width:14px; height:14px; stroke:#fff; stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:24; stroke-dashoffset:24; transition:stroke-dashoffset .25s ease .05s; }
+  .done .circle { background:var(--blue); border-color:var(--blue); }
+  .done .circle svg { stroke-dashoffset:0; }
+  .task.pop .circle { animation:pop .32s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes pop { 0%{transform:scale(.8)} 60%{transform:scale(1.12)} 100%{transform:scale(1)} }
+  .body { flex:1; min-width:0; }
+  .text { font-size:17px; line-height:22px; word-wrap:break-word; transition:color .2s; }
+  .done .text { color:var(--label2); }
+  .sub { font-size:15px; line-height:20px; color:var(--label2); margin-top:2px; letter-spacing:-.24px; }
+  .done .sub { color:var(--label3); }
+  .meta { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:5px; }
+  .meta:empty { display:none; }
+  .due { font-size:13px; line-height:18px; color:var(--label2); background:var(--fill); border-radius:9px; padding:1px 8px; letter-spacing:-.08px; }
+  .due.past { color:var(--red); background:var(--red-fill); }
+  .doneat { font-size:13px; color:var(--label3); letter-spacing:-.08px; }
+  .open { flex:0 0 auto; align-self:center; display:flex; align-items:center; gap:2px; color:var(--blue); text-decoration:none;
+    font-size:15px; padding:6px 0 6px 8px; margin-right:-4px; }
+  .open svg { width:8px; height:13px; stroke:var(--hint); stroke-width:2.2; fill:none; stroke-linecap:round; stroke-linejoin:round; margin-left:6px; }
+  .open:active { opacity:.5; }
+  .empty { padding:12px 16px; color:var(--label3); font-size:15px; }
+
+  /* New Reminder */
+  .addrow { color:var(--blue); align-items:center; }
+  .addrow:active { background:var(--press); transition:none; }
+  .addrow .plus { flex:0 0 24px; height:24px; border-radius:50%; background:var(--blue); display:flex; align-items:center; justify-content:center; }
+  .addrow .plus svg { width:12px; height:12px; stroke:#fff; stroke-width:2.6; stroke-linecap:round; }
+  .addform { cursor:default; align-items:center; }
+  .addform .circle { margin-top:0; }
+  .addform input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--label); font:inherit;
+    font-size:17px; padding:0; height:22px; letter-spacing:-.41px; caret-color:var(--blue); }
+  .addform input::placeholder { color:var(--hint); }
+  .addform button { color:var(--blue); font-size:17px; font-weight:600; padding:0 0 0 8px; }
+  .addform button:active { opacity:.5; }
+
+  /* Deal timeline cards */
+  .deal + .deal { margin-top:12px; }
+  .deal-head { display:flex; align-items:flex-start; gap:10px; padding:14px 12px 0 16px; cursor:pointer; user-select:none; -webkit-user-select:none; transition:padding .3s ease; }
+  .deal-head:active { opacity:.75; }
+  .deal-title { flex:1; min-width:0; }
+  .deal-chev { flex:0 0 auto; align-self:center; width:20px; height:20px; display:flex; align-items:center; justify-content:center; transition:transform .3s ease; transform:rotate(90deg); }
+  .deal-chev svg { width:8px; height:13px; stroke:var(--hint); stroke-width:2.2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .deal.collapsed .deal-chev { transform:rotate(0deg); }
+  .deal-body { overflow:hidden; transition:height .3s ease; }
+  .deal.collapsed .deal-body { height:0; }
+  .deal.collapsed .deal-head { padding:12px 12px 12px 16px; align-items:center; }
+  .deal.collapsed .deal-head .sub, .deal.collapsed .deal-days { display:none; }
+  .deal-csub { display:none; font-size:13px; line-height:18px; color:var(--label2); letter-spacing:-.08px; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .deal.collapsed .deal-csub { display:block; }
+  .deal.collapsed .deal-addr { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .deal-pill, .od-dot { display:none; flex:0 0 auto; align-self:center; font-size:13px; line-height:20px; font-weight:600; letter-spacing:0; border-radius:10px; }
+  .deal-pill { padding:0 8px; color:var(--blue); background:rgba(0,122,255,.10); }
+  .deal-pill.soon { color:#C93400; background:rgba(255,149,0,.14); }
+  .deal-pill.none { color:var(--label2); background:var(--fill); }
+  .od-dot { min-width:20px; height:20px; padding:0 6px; text-align:center; color:#fff; background:#FF3B30; }
+  .deal.collapsed .deal-pill, .deal.collapsed .od-dot { display:inline-block; }
+  .deal-links { padding:0 16px 12px; }
+  .dl-link { display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px; border-radius:15px; background:rgba(0,102,204,.08);
+    color:#0066CC; font-size:14px; font-weight:600; letter-spacing:-.15px; text-decoration:none; transition:transform .1s, opacity .1s; }
+  .dl-link:active { transform:scale(.95); opacity:.7; }
+  .dl-link svg { width:13px; height:13px; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .hbtn { color:var(--blue); font-size:13px; text-transform:none; letter-spacing:-.08px; padding:4px 0 4px 10px; margin:-4px 0; }
+  .hbtn:active { opacity:.5; }
+  .deal-addr { font-size:17px; line-height:22px; font-weight:600; }
+  .deal-days { text-align:right; flex:0 0 auto; line-height:1; }
+  .deal-days b { display:block; font-size:28px; font-weight:700; letter-spacing:.3px; color:var(--blue); }
+  .deal-days span { font-size:12px; color:var(--label2); letter-spacing:0; }
+  .deal-days.soon b { color:#C93400; }
+  .deal-days.none b { color:var(--hint); font-size:22px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; padding:8px 16px 0; }
+  .chip { font-size:12px; line-height:17px; color:var(--label2); background:var(--fill); border-radius:9px; padding:1px 8px; letter-spacing:0; }
+  .chip.uc { color:#1F7A3A; background:rgba(52,199,89,.14); }
+  .tl { padding:14px 16px 4px; }
+  .tl-track { position:relative; height:4px; border-radius:2px; background:var(--fill); margin:6px 4px; }
+  .tl-fill { position:absolute; left:0; top:0; bottom:0; border-radius:2px; background:var(--blue); opacity:.35; }
+  .tl-dot { position:absolute; top:50%; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%; background:#fff; box-shadow:0 0 0 1.5px var(--ring); }
+  .tl-dot.done { background:var(--blue); box-shadow:0 0 0 1.5px var(--blue); }
+  .tl-dot.past { background:#fff; box-shadow:0 0 0 1.5px var(--red); }
+  .tl-dot.close { width:13px; height:13px; margin:-6.5px 0 0 -6.5px; background:var(--label); box-shadow:0 0 0 2px #fff, 0 0 0 3px var(--label); }
+  .tl-today { position:absolute; top:-6px; bottom:-6px; width:2px; margin-left:-1px; border-radius:1px; background:var(--blue); }
+  .tl-tlabel { position:absolute; transform:translateX(-50%); color:var(--blue); font-weight:600; }
+  .tl-labels { position:relative; margin-left:4px; margin-right:4px; display:flex; justify-content:space-between; font-size:12px; color:var(--label2); letter-spacing:0; margin-top:8px; }
+  .tl-none { margin:12px 16px 2px; font-size:13px; color:var(--label2); background:var(--fill); border-radius:8px; padding:8px 10px; letter-spacing:-.08px; }
+  .deal-next { padding:8px 16px 10px; font-size:15px; line-height:20px; color:var(--label); letter-spacing:-.24px; }
+  .deal-next span { color:var(--label2); }
+  .deal-prog { padding:0 16px 8px; font-size:12px; color:var(--label2); text-transform:uppercase; letter-spacing:.2px; }
+  .deal-prog + .swipe > .task::before { content:""; position:absolute; top:0; left:52px; right:0; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .more { position:relative; display:block; width:100%; text-align:left; padding:12px 16px 12px 52px; color:var(--blue); font-size:15px; letter-spacing:-.24px; }
+  .more::before { content:""; position:absolute; top:0; left:52px; right:0; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .more:active { background:var(--press); }
+
+  /* Needs your OK */
+  .approval { cursor:default; padding-top:14px; padding-bottom:14px; }
+  .approval:active { background:var(--card); }
+  .ap-icon { flex:0 0 28px; height:28px; border-radius:8px; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; margin-top:-2px; }
+  .ap-title { font-size:17px; line-height:22px; font-weight:600; }
+  .bubble { margin-top:8px; background:var(--fill); border-radius:14px; padding:9px 12px; font-size:15px; line-height:20px; letter-spacing:-.24px; white-space:pre-wrap; word-wrap:break-word; }
+  .ap-ctx { margin-top:6px; font-size:13px; color:var(--label2); letter-spacing:-.08px; }
+  .ap-edit-area { margin-top:8px; width:100%; min-height:110px; resize:vertical; border:0; outline:0; border-radius:14px; padding:9px 12px; background:var(--fill);
+    font:inherit; font-size:16px; line-height:21px; color:var(--label); box-shadow:inset 0 0 0 1.5px var(--blue); -webkit-user-select:text; user-select:text; }
+  .ap-actions { display:flex; gap:8px; margin-top:10px; }
+  .ap-actions button { height:34px; padding:0 14px; border-radius:17px; font-size:15px; font-weight:600; letter-spacing:-.24px; background:var(--fill); color:var(--blue); transition:transform .1s, opacity .1s; }
+  .ap-actions button:active { transform:scale(.95); opacity:.7; }
+  .ap-actions .ap-skip { color:var(--label2); }
+  .ap-actions .ap-ok { margin-left:auto; background:var(--blue); color:#fff; padding:0 18px; }
+  .edited { font-size:12px; color:var(--label2); margin-left:6px; font-weight:400; }
+
+  /* View switch (Daniel) */
+  .seg { display:flex; margin:14px 0 2px; padding:2px; border-radius:9px; background:rgba(118,118,128,.12); }
+  .seg[hidden] { display:none; }
+  .seg button { flex:1; height:30px; border-radius:7px; font-size:13px; font-weight:500; letter-spacing:-.08px; color:var(--label); transition:background-color .2s, box-shadow .2s; }
+  .seg button.on { background:#fff; font-weight:600; box-shadow:0 3px 8px rgba(0,0,0,.08), 0 0 0 .5px rgba(0,0,0,.04); }
+  /* Lead inbox */
+  .stats { display:flex; padding:12px 4px; }
+  .stat { flex:1; text-align:center; position:relative; }
+  .stat + .stat::before { content:""; position:absolute; left:0; top:4px; bottom:4px; width:.5px; background:var(--sep); }
+  .stat b { display:block; font-size:22px; font-weight:700; letter-spacing:.35px; color:var(--label); }
+  .stat span { font-size:12px; color:var(--label2); letter-spacing:0; }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; padding:0 2px; margin-top:14px; }
+  .filters button { height:30px; padding:0 12px; border-radius:15px; font-size:14px; font-weight:500; letter-spacing:-.15px; background:var(--card); color:var(--label); box-shadow:0 0 0 .5px var(--card-edge), var(--card-shadow); }
+  .filters button.on { background:var(--label); color:#fff; }
+  .filters button i { font-style:normal; opacity:.6; margin-left:4px; }
+  .lead { position:relative; padding:13px 16px 14px; }
+  .lead + .lead::before { content:""; position:absolute; top:0; left:16px; right:0; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .lead-top { display:flex; gap:10px; align-items:baseline; }
+  .lead-name { flex:1; min-width:0; font-size:17px; line-height:22px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lead-when { flex:0 0 auto; font-size:13px; color:var(--label2); letter-spacing:-.08px; }
+  .lead .chips { padding:7px 0 0; }
+  .chip.src-lovable, .chip.src-web { color:#0066CC; background:rgba(0,102,204,.09); }
+  .chip.src-sheet { color:#1F7A3A; background:rgba(52,199,89,.13); }
+  .chip.src-quo { color:#8944AB; background:rgba(175,82,222,.12); }
+  .lead-contact { display:flex; gap:14px; flex-wrap:wrap; margin-top:7px; font-size:15px; letter-spacing:-.24px; }
+  .lead-contact a { color:var(--blue); text-decoration:none; }
+  .lead-msg { margin-top:8px; background:var(--fill); border-radius:14px; padding:8px 12px; font-size:15px; line-height:20px; letter-spacing:-.24px; white-space:pre-wrap; word-wrap:break-word; }
+  .st { display:flex; margin-top:11px; padding:2px; border-radius:9px; background:rgba(118,118,128,.12); }
+  .st button { flex:1; height:28px; border-radius:7px; font-size:13px; font-weight:500; letter-spacing:-.08px; color:var(--label2); }
+  .st button.on { background:#fff; color:var(--label); font-weight:600; box-shadow:0 3px 8px rgba(0,0,0,.08), 0 0 0 .5px rgba(0,0,0,.04); }
+  .st button.on.s-new { color:#0066CC; } .st button.on.s-contacted { color:#1F7A3A; } .st button.on.s-nurture { color:#C93400; } .st button.on.s-dead { color:var(--label2); }
+  /* Message Yells */
+  .msg { padding:12px 16px 4px; }
+  .msg textarea { display:block; width:100%; min-height:66px; resize:none; border:0; outline:0; border-radius:12px; padding:9px 12px; background:var(--fill);
+    font:inherit; font-size:16px; line-height:21px; color:var(--label); letter-spacing:-.32px; -webkit-user-select:text; user-select:text; transition:box-shadow .15s; }
+  .msg textarea:focus { box-shadow:inset 0 0 0 1.5px var(--blue); }
+  .msg textarea::placeholder { color:var(--hint); }
+  .tog-row { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; font-size:15px; letter-spacing:-.24px; cursor:pointer; position:relative; margin-top:4px; }
+  .switch { -webkit-appearance:none; appearance:none; flex:none; width:51px; height:31px; border-radius:16px; background:#E9E9EA; position:relative; cursor:pointer; transition:background-color .25s; margin:0; }
+  .switch::after { content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16); transition:transform .25s cubic-bezier(.3,.7,.4,1); }
+  .switch:checked { background:#34C759; } .switch:checked::after { transform:translateX(20px); }
+  .msg-foot { display:flex; align-items:center; gap:10px; padding:4px 0 12px; }
+  .msg-hint { flex:1; font-size:13px; color:var(--label2); letter-spacing:-.08px; }
+  .msg-hint.warn { color:#C93400; }
+  .msg-send { height:34px; padding:0 18px; border-radius:17px; font-size:15px; font-weight:600; letter-spacing:-.24px; background:var(--blue); color:#fff; transition:transform .1s, opacity .1s; }
+  .msg-send:active { transform:scale(.95); opacity:.7; } .msg-send[disabled] { opacity:.35; }
+  .hist-tog { display:flex; align-items:center; gap:4px; position:relative; width:calc(100% + 16px); margin-right:-16px; min-height:40px; padding:0 16px 0 0; font-size:13px; font-weight:500; color:var(--blue); letter-spacing:-.08px; text-align:left; }
+  .hist-tog::before { content:""; position:absolute; top:0; left:0; right:0; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .hist-tog .cnt { color:var(--label2); font-weight:400; }
+  .hist-tog svg { width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s; margin-left:auto; }
+  .hist-tog[aria-expanded="true"] svg { transform:rotate(180deg); }
+  .hist-more { display:block; width:100%; min-height:36px; font-size:13px; font-weight:500; color:var(--blue); letter-spacing:-.08px; position:relative; }
+  .hist-more::before { content:""; position:absolute; top:0; left:0; right:-16px; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .hist-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; position:relative; min-height:38px; }
+  .hist-foot::before { content:""; position:absolute; top:0; left:0; right:-16px; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .hist-foot .hist-more::before { display:none; } .hist-foot .hist-more { width:auto; text-align:left; }
+  .hist-clear { font-size:13px; color:var(--label2); letter-spacing:-.08px; padding:8px 0 8px 8px; margin-left:auto; }
+  .hist-confirm { flex:1; display:flex; align-items:center; gap:14px; font-size:13px; letter-spacing:-.08px; color:var(--label); }
+  .hist-confirm span { flex:1; } .hist-confirm button { font-size:13px; font-weight:500; padding:8px 0; color:var(--blue); } .hist-confirm button.danger { color:var(--red); font-weight:600; }
+  .dstat.seen { color:#0066CC; background:rgba(0,122,255,.12); }
+  /* Yells: messages from Daniel */
+  .ibanner { display:flex; align-items:center; gap:12px; width:100%; padding:12px 16px; text-align:left; font-size:15px; letter-spacing:-.24px; color:var(--label); }
+  .ibanner .dot { flex:0 0 30px; height:30px; border-radius:8px; background:var(--blue); display:flex; align-items:center; justify-content:center; }
+  .ibanner .dot svg { width:17px; height:17px; fill:none; stroke:#fff; stroke-width:2; stroke-linejoin:round; }
+  .ibanner .bt { flex:1; min-width:0; font-weight:600; } .ibanner .bt small { display:block; font-weight:400; font-size:13px; color:var(--label2); letter-spacing:-.08px; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ibanner .chev { flex:none; width:8px; height:13px; fill:none; stroke:var(--hint); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .imsg { position:relative; padding:12px 16px; }
+  .imsg + .imsg::before { content:""; position:absolute; top:0; left:16px; right:0; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .imsg-text { font-size:17px; line-height:22px; letter-spacing:-.43px; white-space:pre-wrap; word-wrap:break-word; }
+  .imsg-row { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:13px; color:var(--label2); letter-spacing:-.08px; }
+  .imsg-row .sp { flex:1; }
+  .gotit { height:32px; padding:0 16px; border-radius:16px; font-size:15px; font-weight:600; letter-spacing:-.24px; background:var(--blue); color:#fff; transition:transform .1s, opacity .1s; }
+  .gotit:active { transform:scale(.95); opacity:.7; }
+  .iback { display:inline-flex; align-items:center; gap:4px; font-size:17px; color:var(--blue); letter-spacing:-.43px; padding:4px 0 10px; }
+  .iback svg { width:10px; height:17px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+  .ackall { display:block; width:100%; height:44px; font-size:17px; color:var(--blue); letter-spacing:-.43px; }
+  .iempty { padding:28px 16px; text-align:center; } .iempty b { display:block; font-size:17px; letter-spacing:-.43px; margin-bottom:4px; }
+  .iempty span { font-size:15px; color:var(--label2); letter-spacing:-.24px; } .iempty .gotit { margin-top:16px; }
+  .hist { position:relative; padding:9px 0 10px; display:flex; gap:10px; align-items:baseline; }
+  .hist::before { content:""; position:absolute; top:0; left:0; right:-16px; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .hist-body { flex:1; min-width:0; font-size:15px; line-height:20px; letter-spacing:-.24px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hist-meta { flex:none; font-size:12px; color:var(--label2); letter-spacing:0; display:flex; gap:6px; align-items:center; }
+  .dstat { font-size:12px; line-height:17px; border-radius:9px; padding:1px 8px; font-weight:500; }
+  .dstat.ok { color:#1F7A3A; background:rgba(52,199,89,.14); } .dstat.bad { color:var(--red); background:var(--red-fill); } .dstat.none { color:var(--label2); background:var(--fill); }
+  /* Notifications opt-in */
+  .notif { display:flex; align-items:center; gap:12px; padding:12px 16px; }
+  .notif .bell { flex:0 0 30px; height:30px; border-radius:8px; background:#FF3B30; display:flex; align-items:center; justify-content:center; }
+  .notif .bell svg { width:17px; height:17px; fill:#fff; }
+  .notif .nt { flex:1; min-width:0; font-size:15px; line-height:20px; letter-spacing:-.24px; }
+  .notif .nt small { display:block; font-size:13px; color:var(--label2); letter-spacing:-.08px; margin-top:1px; }
+  .notif button { flex:none; color:var(--blue); font-size:15px; font-weight:600; letter-spacing:-.24px; padding:6px 0 6px 6px; }
+  .ncard { padding:16px; }
+  .ncard .nhead { display:flex; align-items:center; gap:12px; }
+  .ncard .bell { flex:0 0 36px; height:36px; border-radius:9px; background:#FF3B30; display:flex; align-items:center; justify-content:center; }
+  .ncard .bell svg { width:20px; height:20px; fill:#fff; }
+  .ncard .nt { flex:1; min-width:0; font-size:17px; line-height:22px; font-weight:600; letter-spacing:-.41px; }
+  .ncard .nt small { display:block; font-size:15px; line-height:20px; font-weight:400; color:var(--label2); letter-spacing:-.24px; margin-top:2px; }
+  .nbig { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:50px; margin-top:14px; border-radius:12px;
+    background:var(--blue); color:#fff; font-size:17px; font-weight:600; letter-spacing:-.41px; text-decoration:none; transition:transform .1s, opacity .1s; }
+  .nbig:active { transform:scale(.98); opacity:.8; }
+  .nbig.sec { background:var(--fill); color:var(--blue); }
+  .nbig svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .nsteps { list-style:none; margin:14px 0 0; padding:0; counter-reset:st; }
+  .nsteps li { counter-increment:st; position:relative; display:flex; align-items:center; gap:10px; min-height:44px; font-size:15px; line-height:20px; letter-spacing:-.24px; padding:6px 0; }
+  .nsteps li + li::before { content:""; position:absolute; top:0; left:38px; right:0; height:1px; background:var(--sep); transform:scaleY(.5); transform-origin:top; }
+  .nsteps li .num { flex:0 0 28px; height:28px; border-radius:50%; background:var(--fill); color:var(--label2); font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  .nsteps li .txt { flex:1; min-width:0; }
+  .nsteps .ico { display:inline-flex; vertical-align:-5px; width:22px; height:22px; color:var(--blue); }
+  .nsteps .ico svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .nsteps b { font-weight:600; }
+  .ncard.pulse { animation:npulse 1.6s ease-out 2; }
+  @keyframes npulse { 0% { box-shadow:0 0 0 0 rgba(0,102,204,.35); } 100% { box-shadow:0 0 0 14px rgba(0,102,204,0); } }
+  .signout { color:var(--blue); font-size:13px; margin-left:6px; }
+  footer { text-align:center; color:var(--label3); font-size:13px; margin-top:28px; letter-spacing:-.08px; }
+  #toast { box-shadow:0 0 0 .5px var(--card-edge), 0 6px 20px rgba(17,17,26,.08) !important; position:fixed; left:50%; bottom:calc(var(--safe-b) + 24px); transform:translate(-50%,12px); z-index:30;
+    background:var(--nav); -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px);
+    color:var(--label); padding:10px 18px; border-radius:22px; font-size:15px; font-weight:500; letter-spacing:-.24px;
+    box-shadow:0 0 0 .5px var(--sep); opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; white-space:nowrap; }
+  #toast.show { opacity:1; transform:translate(-50%,0); }
+  #toast.act { pointer-events:auto; padding:6px 6px 6px 18px; display:flex; align-items:center; gap:14px; }
+  #toast .undo { color:var(--blue); font-weight:600; font-size:15px; padding:6px 12px; border-radius:16px; }
+  #toast .undo:active { background:var(--fill); }
+
+  /* Action sheet */
+  #sheet { position:fixed; inset:0; z-index:40; display:flex; flex-direction:column; justify-content:flex-end;
+    padding:0 calc(var(--safe-r) + 8px) calc(var(--safe-b) + 8px) calc(var(--safe-l) + 8px); visibility:hidden; }
+  #sheet .dim { position:absolute; inset:0; background:rgba(0,0,0,.28); opacity:0; transition:opacity .25s; }
+  #sheet .grp { position:relative; border-radius:14px; overflow:hidden; background:rgba(249,249,251,.86);
+    -webkit-backdrop-filter:saturate(180%) blur(24px); backdrop-filter:saturate(180%) blur(24px);
+    transform:translateY(120%); transition:transform .3s cubic-bezier(.2,.8,.2,1); max-width:664px; width:100%; margin:0 auto; }
+  #sheet .grp + .grp { margin-top:8px; }
+  #sheet.show { visibility:visible; }
+  #sheet.show .dim { opacity:1; }
+  #sheet.show .grp { transform:none; }
+  #sheet .ttl { padding:14px 16px; text-align:center; font-size:13px; line-height:18px; color:var(--label2); letter-spacing:-.08px;
+    border-bottom:.5px solid var(--sep); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  #sheet button { display:block; width:100%; height:57px; font-size:20px; letter-spacing:.38px; color:var(--blue); }
+  #sheet button:active { background:rgba(0,0,0,.06); }
+  #sheet .sdel { color:#FF3B30; }
+  #sheet.nmode .sdel { color:var(--blue); }
+  #sheet .ttl b { display:block; color:var(--label); font-weight:600; font-size:15px; margin-bottom:2px; }
+  #notifmenu:not([hidden]) + #signout:not([hidden])::before { content:"·"; color:var(--label3); margin-right:6px; }
+  #sheet .scancel { font-weight:600; background:#fff; }
+/* ---- GitHub Pages build additions ---- */
+#stale{display:none;margin-top:6px;font-size:13px;line-height:1.35;color:#b25000;background:#fff4e5;border-radius:10px;padding:7px 10px}
+#stale.show{display:block}
+#pair{position:fixed;inset:0;z-index:50;background:var(--bg,#f2f2f7);display:none;align-items:center;justify-content:center;padding:max(28px,env(safe-area-inset-top)) 24px max(28px,env(safe-area-inset-bottom))}
+#pair.show{display:flex}
+#pair .pbox{width:100%;max-width:360px;text-align:center}
+#pair .picon{width:72px;height:72px;border-radius:17px;margin:0 auto 18px;display:block;box-shadow:0 4px 16px rgba(15,35,70,.18)}
+#pair h1{font-size:26px;margin:0 0 6px;font-weight:700;letter-spacing:-.02em}
+#pair p{margin:0 0 20px;color:#6e6e73;font-size:15px;line-height:1.45}
+#pair input{width:100%;box-sizing:border-box;font:600 26px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;text-align:center;text-transform:uppercase;padding:14px 10px;border:1px solid #d1d1d6;border-radius:14px;background:#fff;color:#1c1c1e;outline:none}
+#pair input:focus{border-color:#007aff;box-shadow:0 0 0 3px rgba(0,122,255,.18)}
+#pair button{margin-top:14px;width:100%;padding:14px;border:0;border-radius:14px;background:#007aff;color:#fff;font:600 17px/1.2 -apple-system,system-ui,sans-serif}
+#pair button:disabled{opacity:.45}
+#pair .perr{min-height:20px;margin-top:12px;color:#d70015;font-size:14px}
+#pair .phint{margin-top:22px;font-size:13px;color:#8e8e93;line-height:1.45}
+#pair ol{text-align:left;margin:0 0 18px;padding:0 0 0 20px;color:#3a3a3c;font-size:15px;line-height:1.5}
+#pair .plink{background:none;color:#007aff;font-weight:500;margin-top:6px}
+.devrow{display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:.5px solid rgba(60,60,67,.18)}
+.devrow:first-child{border-top:0}
+.devrow .dv{flex:1;min-width:0}.devrow .dv b{display:block;font-weight:500;font-size:16px}.devrow .dv span{display:block;font-size:13px;color:#8e8e93;margin-top:1px}
+.devrow button{border:0;background:none;color:#ff3b30;font:500 15px -apple-system,system-ui,sans-serif;padding:6px 2px}
+.devrow button.sure{color:#fff;background:#ff3b30;border-radius:8px;padding:6px 10px}
+.devadd{display:flex;gap:8px;padding:12px 16px;border-top:.5px solid rgba(60,60,67,.18)}
+.devadd button{flex:1;border:0;border-radius:10px;padding:10px 6px;background:rgba(0,122,255,.1);color:#007aff;font:600 15px -apple-system,system-ui,sans-serif}
+.devcode{padding:14px 16px 16px;border-top:.5px solid rgba(60,60,67,.18);text-align:center}
+.devcode b{display:block;font:700 30px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;margin:6px 0}
+.devcode span{font-size:13px;color:#6e6e73;line-height:1.4;display:block}
+</style>
+</head>
+<body>
+<nav id="nav">
+  <div id="navtitle">To Do</div>
+  <button id="refresh" type="button" aria-label="Refresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><polyline points="20 4 20 9 15 9"/></svg>
+  </button>
+</nav>
+<div id="ptr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><polyline points="20 4 20 9 15 9"/></svg></div>
+<main>
+  <div class="large">
+    <h1 id="title">To Do</h1>
+    <div id="date">&nbsp;</div>
+    <div id="updated"></div>
+    <div id="stale" role="status"></div>
+    <div class="seg" id="seg" hidden><button type="button" data-view="todo" class="on">To Do</button><button type="button" data-view="leads">Leads</button></div>
+  </div>
+  <div id="sections"></div>
+  <footer><span id="foot">Check-offs go straight to TraCy.</span> <button type="button" class="signout" id="notifmenu" hidden aria-label="Notification settings">Notifications</button><button type="button" class="signout" id="signout" hidden>Sign out</button></footer>
+</main>
+<div id="toast"></div>
+<div id="pair" aria-hidden="true"><div class="pbox">
+  <img class="picon" src="apple-touch-icon.png?v=4" alt="">
+  <h1>Criterion Daily</h1>
+  <div id="pinstall" hidden><p>Add this app to your Home Screen first, then open it from there and enter your code.</p>
+    <ol><li>Tap the Share button at the bottom of Safari.</li><li>Tap <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open <b>To Do</b> from your Home Screen.</li></ol>
+    <button type="button" class="plink" id="pinhere">Use it here in Safari instead</button></div>
+  <form id="pform"><p>Enter the 8-character code Daniel gave you.</p>
+    <input id="pcode" inputmode="text" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" aria-label="Pairing code">
+    <button type="submit" id="pgo" disabled>Continue</button>
+    <div class="perr" id="perr" role="alert"></div>
+    <div class="phint">Daniel: open Criterion Daily on a phone that’s already set up and tap <b>Add a device</b>. First time? Ask TraCy for a code.</div></form>
+</div></div>
+<div id="sheet" aria-hidden="true"><div class="dim"></div>
+  <div class="grp"><div class="ttl" id="sheettitle"></div><button type="button" class="sdel" id="sheetdel">Delete</button></div>
+  <div class="grp"><button type="button" class="scancel" id="sheetcancel">Cancel</button></div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : null;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const check = '<svg viewBox="0 0 24 24"><polyline points="5 12.5 10 17.5 19 7"/></svg>';
+const chev = '<svg viewBox="0 0 8 13"><polyline points="1.5 1.5 6.5 6.5 1.5 11.5"/></svg>';
+const plus = '<svg viewBox="0 0 12 12"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>';
+const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+// Deal cards always start collapsed. Cards tapped open stay open only until the page reloads (not saved).
+try { localStorage.removeItem('todo.collapsedDeals'); } catch {}
+const openDeals = new Set();
+const isDealCollapsed = id => !openDeals.has(id);
+const extIcon = '<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+let data = null, adding = false, deals = [], approvals = [], expanded = new Set(), editing = null;
+// Who's signed in: 'admin' (Daniel: everything) or 'todo' (Yells: only her own list). The server enforces this too.
+let ROLE = 'admin', ME = null, T = '/api/tasks', ADD = 'My adds';
+let VIEW = 'todo'; try { VIEW = localStorage.getItem('todo.view') === 'leads' ? 'leads' : 'todo'; } catch {}
+let leadData = null, leadFilter = 'all';
+let histOpen = false, histShown = 5, histConfirm = false;
+// Yells: unacknowledged messages from Daniel, and whether the Messages page is showing (deep link /?view=messages or #messages).
+let inbox = [], msgView = false;
+{ const q = new URLSearchParams(location.search); if (q.get('view') === 'messages' || location.hash === '#messages') { msgView = true; q.delete('view');
+  history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '')); } }   // Message Yells history: collapsed by default, 5 at a time
+let notifyInfo = null, msgDraft = '', msgAddTask = false, sending = false, pushState = 'checking', notifyPulse = false;
+const bell = '<svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-1.7 1.7A.75.75 0 0 0 3.83 19h16.34a.75.75 0 0 0 .53-1.3z"/></svg>';
+const STATUSES = ['new','contacted','nurture','dead'], SRC_LABEL = { web:'Home value page', lovable:'Home value page (old)', sheet:'Lead tracker', quo:'Quo text' };
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+async function api(u, opt){ return CD.api(u, opt); }   // Apps Script client (app-api.js); shows the pairing screen when this device isn't paired
+const price = v => /^\d+$/.test(v||'') ? '$' + Number(v).toLocaleString('en-US') : (v || '');
+function toast(msg, action){ const t=$('#toast'); clearTimeout(t._h); t.textContent=msg; t.classList.toggle('act', !!action);
+  if (action) { const b=document.createElement('button'); b.className='undo'; b.type='button'; b.textContent=action.label;
+    b.onclick=e=>{ e.stopPropagation(); t.classList.remove('show','act'); clearTimeout(t._h); action.fn(); }; t.appendChild(b); }
+  t.classList.add('show'); t._h=setTimeout(()=>t.classList.remove('show','act'), action ? (action.ms||4000) : 1800); }
+function fmtET(iso, opts){ try { return new Date(iso).toLocaleString('en-US',{timeZone:'America/New_York',...opts}); } catch { return iso; } }
+// Best-effort parse of free-text due strings like "Wed Oct 28" or "Mon Oct 19, 9am"
+function dueDate(t){
+  if (t.due_at) { const d = new Date(t.due_at); if (!isNaN(d)) return d; }
+  const s = String(t.due || ''); const m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b/i);
+  if (!m) return null;
+  const mon = MONTHS.indexOf(m[1].toLowerCase()), day = +m[2];
+  const year = +(String(data.date || '').slice(0,4)) || new Date().getFullYear();
+  let h = 23, min = 59; const tm = s.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i);
+  if (tm) { h = (+tm[1] % 12) + (tm[3].toLowerCase()==='pm' ? 12 : 0); min = +(tm[2] || 0); }
+  const off = (mon >= 2 && mon <= 10) ? '-04:00' : '-05:00';
+  const p = n => String(n).padStart(2,'0');
+  const d = new Date(`${year}-${p(mon+1)}-${p(day)}T${p(h)}:${p(min)}:00${off}`);
+  return isNaN(d) ? null : d;
+}
+function isPast(t){ if (t.done) return false; if (t.overdue) return true; const d = dueDate(t); return !!d && d < new Date(); }
+function rowHTML(t){
+  const link = safeUrl(t.link);
+  const meta = `${t.due?`<span class="due${isPast(t)?' past':''}">${esc(t.due)}</span>`:''}${t.done&&t.done_at?`<span class="doneat">Done ${esc(fmtET(t.done_at,{weekday:'short',hour:'numeric',minute:'2-digit'}))} ET</span>`:''}`;
+  return `<div class="swipe" data-id="${esc(t.id)}"${t._deal!=null?` data-deal="${esc(t._deal)}"`:''}><div class="del-bg"><button type="button" class="delbtn">Delete</button></div><div class="task ${t.done?'done':''}" data-id="${esc(t.id)}" role="checkbox" aria-checked="${!!t.done}" tabindex="0">
+    <div class="circle">${check}</div>
+    <div class="body"><div class="text">${esc(t.text)}</div>${t.detail?`<div class="sub">${esc(t.detail)}</div>`:''}<div class="meta">${meta}</div></div>
+    ${link?`<a class="open" href="${esc(link)}" target="_blank" rel="noopener">Open${chev}</a>`:''}
+  </div></div>`;
+}
+function approvalHTML(a){
+  const ch = (a.channel || a.kind || '').toString(); const ic = /mail/i.test(ch) ? '@' : /slack/i.test(ch) ? '#' : /text|sms|imessage|quo/i.test(ch) ? '✉︎' : '✓';
+  const ed = editing === a.id;
+  return `<div class="swipe" data-id="${esc(a.id)}" data-approval="1"><div class="del-bg"><button type="button" class="delbtn">Skip</button></div><div class="task approval" data-id="${esc(a.id)}">
+    <div class="ap-icon">${ic}</div>
+    <div class="body"><div class="ap-title">${esc(a.title)}${a.edited_at?'<span class="edited">Edited</span>':''}</div>
+      ${(a.to||a.channel)?`<div class="sub">${esc([a.to && 'To ' + a.to, a.channel].filter(Boolean).join(' · '))}</div>`:''}
+      ${ed ? `<textarea class="ap-edit-area" id="apedit" maxlength="5000">${esc(a.body)}</textarea>
+        <div class="ap-actions"><button type="button" class="ap-cancel ap-skip">Cancel</button><button type="button" class="ap-save ap-ok">Save</button></div>`
+      : `<div class="bubble">${esc(a.body)}</div>${a.context?`<div class="ap-ctx">${esc(a.context)}</div>`:''}
+        <div class="ap-actions"><button type="button" class="ap-skip">Skip</button><button type="button" class="ap-edit">Edit</button><button type="button" class="ap-ok">Approve</button></div>`}
+    </div></div></div>`;
+}
+function dealHTML(d){
+  const cl = d.checklist || []; const done = cl.filter(t=>t.done).length;
+  const days = d.days_to_close;
+  const daysHTML = days == null ? `<div class="deal-days none"><b>—</b><span>no date</span></div>`
+    : `<div class="deal-days${days<=7?' soon':''}"><b>${days<0?Math.abs(days):days}</b><span>${days===0?'closing today':days<0?(Math.abs(days)===1?'day past':'days past'):(days===1?'day to close':'days to close')}</span></div>`;
+  const chips = [d.loop_type, d.stage, price(d.price), d.owner].filter(Boolean).map((c,i)=>`<span class="chip${i===1&&/under contract/i.test(c)?' uc':''}">${esc(c)}</span>`).join('');
+  let tl = '';
+  if (d.closing_date) {
+    const dated = cl.filter(t=>t.due_at).map(t=>({t, at:new Date(t.due_at)}));
+    const close = new Date(d.closing_date+'T23:59:00-04:00'), now = new Date();
+    const start = Math.min(now, ...dated.map(x=>x.at)), end = Math.max(close, ...dated.map(x=>x.at));
+    const pos = x => Math.max(0, Math.min(100, (x - start) / Math.max(1, end - start) * 100));
+    tl = `<div class="tl"><div class="tl-track"><div class="tl-fill" style="width:${pos(now)}%"></div>
+      ${dated.map(x=>`<div class="tl-dot${x.t.id==='closing'?' close':x.t.done?' done':isPast(x.t)?' past':''}" style="left:${pos(x.at)}%" title="${esc(x.t.text)}"></div>`).join('')}
+      <div class="tl-today" style="left:${pos(now)}%"></div></div>
+      <div class="tl-labels"><span${pos(now)<3?' style="color:var(--blue);font-weight:600"':''}>${pos(now)<3?'Today':esc(fmtET(new Date(start).toISOString(),{month:'short',day:'numeric'}))}</span>${pos(now)>14&&pos(now)<72?`<span class="tl-tlabel" style="left:${pos(now)}%">Today</span>`:''}<span>Closing ${esc(d.closing_label)}</span></div></div>`;
+  } else tl = `<div class="tl-none">No closing date in the loop yet.</div>`;
+  const open = cl.filter(t=>!t.done); const all = expanded.has(d.id);
+  const rank = t => isPast(t) ? 0 : t.due_at ? 1 : 2;
+  const shown = all ? cl : open.slice().sort((a,b)=> rank(a)-rank(b) || String(a.due_at||'').localeCompare(String(b.due_at||'')) || cl.indexOf(a)-cl.indexOf(b)).slice(0, 3);
+  const rows = shown.map(t => rowHTML({...t, _deal:d.id})).join('');
+  const more = cl.length > shown.length || all ? `<button type="button" class="more" data-more="${esc(d.id)}">${all?'Show less':`Show all ${cl.length}`}</button>` : '';
+  const overdue = cl.filter(t => isPast(t)).length;
+  const pill = days == null ? '<span class="deal-pill none">No date</span>' : `<span class="deal-pill${days<=7?' soon':''}">${days<0?Math.abs(days)+'d past':days===0?'Today':days+'d'}</span>`;
+  const dl = d.dotloop_url ? `<a class="dl-link" href="${esc(d.dotloop_url)}" target="_blank" rel="noopener">Open in Dotloop${extIcon}</a>`
+    : `<a class="dl-link" href="https://www.dotloop.com/my/loops" target="_blank" rel="noopener" data-copy="${esc(d.address)}">Find in Dotloop${extIcon}</a>`;
+  const isC = isDealCollapsed(d.id);
+  const nowMs = Date.now(), nextKey = cl.filter(t => !t.done && t.due_at && Date.parse(t.due_at) >= nowMs - 864e5).sort((a,b) => Date.parse(a.due_at) - Date.parse(b.due_at))[0];
+  const keyTxt = nextKey ? `${nextKey.text.replace(/\s*\(.*?\)\s*$/,'')} ${fmtET(nextKey.due_at,{weekday:'short',month:'short',day:'numeric'})}` : d.closing_label ? `Closing ${d.closing_label}` : '';
+  const csub = [d.stage, keyTxt && 'Next: ' + keyTxt].filter(Boolean).join(' · ');
+  return `<div class="card deal${isC?' collapsed':''}" data-dealcard="${esc(d.id)}">
+    <div class="deal-head" role="button" tabindex="0" aria-expanded="${!isC}"><div class="deal-title"><div class="deal-addr">${esc(d.line1)}</div><div class="sub">${esc(d.city)}</div>${csub?`<div class="deal-csub">${esc(csub)}</div>`:''}</div>${pill}${overdue?`<span class="od-dot" title="${overdue} overdue">${overdue}</span>`:''}${daysHTML}<span class="deal-chev">${chev}</span></div>
+    <div class="deal-body"><div class="chips">${chips}</div>${tl}
+    ${d.next_action?`<div class="deal-next"><span>Next:</span> ${esc(d.next_action)}</div>`:'<div style="height:8px"></div>'}
+    <div class="deal-links">${dl}</div>
+    <div class="deal-prog">${done} of ${cl.length} done</div>${rows}${more}</div></div>`;
+}
+function leadHTML(L){
+  const title = L.name || L.phone || L.email || 'Unknown';
+  const when = L.created_at ? fmtET(L.created_at,{month:'short',day:'numeric'}) : '';
+  const chips = L.sources.map(s=>`<span class="chip src-${esc(s)}">${esc(SRC_LABEL[s]||s)}</span>`).join('') + (L.channel && !/^quo text$/i.test(L.channel) ? `<span class="chip">${esc(L.channel)}</span>` : '') + (L.timeline ? `<span class="chip">${esc(L.timeline)}</span>` : '');
+  const tel = L.phone ? `<a href="tel:${esc(String(L.phone).replace(/[^+\d]/g,''))}">${esc(L.phone)}</a>` : '';
+  const mail = L.email ? `<a href="mailto:${esc(L.email)}">${esc(L.email)}</a>` : '';
+  const last = (L.messages||[]).slice(-1)[0];
+  return `<div class="lead" data-lead="${esc(L.id)}">
+    <div class="lead-top"><div class="lead-name">${esc(title)}</div><div class="lead-when">${esc(when)}</div></div>
+    ${L.address?`<div class="sub">${esc(L.address)}</div>`:''}
+    <div class="chips">${chips}</div>
+    ${tel||mail?`<div class="lead-contact">${tel}${mail}</div>`:''}
+    ${last?`<div class="lead-msg">${esc(last.body)}</div>`:''}${L.notes?`<div class="ap-ctx">${esc(L.notes)}</div>`:''}
+    <div class="st" role="radiogroup" aria-label="Status">${STATUSES.map(s=>`<button type="button" role="radio" aria-checked="${L.status===s}" class="s-${s}${L.status===s?' on':''}" data-status="${s}">${cap(s)}</button>`).join('')}</div>
+  </div>`;
+}
+function renderLeads(){
+  const L = (leadData && leadData.leads) || []; const c = (leadData && leadData.counts) || {};
+  const bs = c.by_source || {}; const ex = c.excluded_tests || {};
+  const n = s => (bs[s] && bs[s].total) || 0;
+  $('#updated').textContent = leadData && leadData.updated_at ? 'Synced ' + fmtET(leadData.updated_at,{weekday:'short',hour:'numeric',minute:'2-digit'}) + ' ET' : '';
+  const stats = `<section><h2><span>By source</span><span>${L.length} total</span></h2><div class="card stats">
+    <div class="stat"><b>${n('web')+n('lovable')}</b><span>Home value</span></div><div class="stat"><b>${n('sheet')}</b><span>Tracker</span></div><div class="stat"><b>${n('quo')}</b><span>Quo texts</span></div></div></section>`;
+  const cnt = s => L.filter(x=>x.status===s).length;
+  const filters = `<div class="filters">${['all',...STATUSES].map(s=>`<button type="button" data-filter="${s}" class="${leadFilter===s?'on':''}">${s==='all'?'All':cap(s)}<i>${s==='all'?L.length:cnt(s)}</i></button>`).join('')}</div>`;
+  const shown = leadFilter === 'all' ? L : L.filter(x=>x.status===leadFilter);
+  const hidden = (ex.web||0)+(ex.lovable||0)+(ex.sheet||0)+(ex.quo||0);
+  const list = `<section><h2><span>${leadFilter==='all'?'All leads':cap(leadFilter)}</span><span>${shown.length}</span></h2><div class="card">${shown.length ? shown.map(leadHTML).join('')
+    : `<div class="empty">${L.length ? 'No leads with this status.' : 'No leads yet.'}${hidden&&!L.length?` ${hidden} test or internal entr${hidden===1?'y is':'ies are'} hidden.`:''}</div>`}</div></section>`;
+  $('#sections').innerHTML = stats + filters + list;
+}
+function msgHTML(){
+  const n = notifyInfo ? notifyInfo.devices : 0, hist = (notifyInfo && notifyInfo.history) || [];
+  const hint = !notifyInfo ? '' : n ? `On ${n === 1 ? 'her iPhone' : n + ' devices'}` : 'Yells hasn’t turned on notifications yet';
+  const can = !sending && msgDraft.trim() && (n || msgAddTask);
+  const label = sending ? 'Sending…' : (!n && msgAddTask) ? 'Add to List' : 'Send';
+  const st = h => h.seen_at ? `<span class="dstat seen">Seen ${esc(when(h.seen_at))}</span>` : h.status === 'sent' ? `<span class="dstat ok">${h.devices > 1 ? 'Sent ' + h.sent + '/' + h.devices : 'Sent'}</span>`
+    : h.status === 'partial' ? `<span class="dstat ok">Sent ${h.sent}/${h.devices}</span>` : h.status === 'failed' ? '<span class="dstat bad">Failed</span>'
+    : `<span class="dstat none">${h.task_added ? 'Task only' : 'Not delivered'}</span>`;
+  const todayET = fmtET(new Date().toISOString(),{year:'numeric',month:'short',day:'numeric'});
+  const when = ts => fmtET(ts,{year:'numeric',month:'short',day:'numeric'}) === todayET ? fmtET(ts,{hour:'numeric',minute:'2-digit'}) : fmtET(ts,{month:'short',day:'numeric'}) + ', ' + fmtET(ts,{hour:'numeric',minute:'2-digit'});
+  const rows = !hist.length ? '' : `<button type="button" class="hist-tog" id="histtog" aria-expanded="${histOpen}" aria-controls="histlist">History <span class="cnt">(${hist.length})</span><svg viewBox="0 0 12 12"><polyline points="2.5 4.5 6 8 9.5 4.5"/></svg></button>`
+    + (!histOpen ? '' : `<div id="histlist">` + hist.slice(0, histShown).map(h => `<div class="hist"><div class="hist-body">${esc(h.body)}</div><div class="hist-meta">${h.task_added && h.status !== 'not_subscribed' ? '<span class="dstat none">+ Task</span>' : ''}${st(h)}<span>${esc(when(h.ts_et))}</span></div></div>`).join('')
+    + `<div class="hist-foot">${histConfirm
+        ? `<div class="hist-confirm"><span>Clear all history?</span><button type="button" id="histno">Cancel</button><button type="button" class="danger" id="histyes">Clear</button></div>`
+        : (hist.length > histShown ? `<button type="button" class="hist-more" id="histmore">Show ${Math.min(10, hist.length - histShown)} more</button>` : '') + `<button type="button" class="hist-clear" id="histclear">Clear history</button>`}</div></div>`);
+  return `<section id="msgsec"><h2><span>Message Yells</span><span></span></h2><div class="card msg">
+    <textarea id="msgtext" maxlength="240" placeholder="Message" enterkeyhint="send" aria-label="Message to Yells"></textarea>
+    <label class="tog-row"><span>Also add as a task on her list</span><input type="checkbox" class="switch" id="msgtask"${msgAddTask ? ' checked' : ''}></label>
+    <div class="msg-foot"><span class="msg-hint${notifyInfo && !n ? ' warn' : ''}" id="msghint">${esc(hint)}</span><button type="button" class="msg-send" id="msgsend"${can ? '' : ' disabled'}>${label}</button></div>
+    ${rows}</div></section>`;
+}
+const shareIco = '<svg viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="8 7 12 3 16 7"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2"/></svg>';
+const addIco = '<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+const goIco = '<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+const step = (n, html) => `<li><span class="num">${n}</span><span class="txt">${html}</span></li>`;
+function notifHTML(){
+  const who = ROLE === 'admin' ? 'TraCy and Yells can' : 'Daniel can';
+  const big = (id, label, extra = '') => `<button type="button" class="nbig${extra}" id="${id}">${label}</button>`;
+  let title, sub, body = '';
+  switch (pushState) {
+    case 'insecure':   // old http address: open the secure (https) app in Safari, carrying the login over
+      title = 'Turn on notifications'; sub = `So ${who} reach you on this phone. This opens the secure version of To Do in Safari.`;
+      body = `<a class="nbig" id="pushgo" href="${esc(handoffHref())}" target="_blank" rel="noopener">${goIco}Turn on notifications</a>`; break;
+    case 'install':    // https in a Safari tab: iPhone only allows notifications from the Home Screen app
+      title = 'Turn on notifications'; sub = 'Three quick steps on this iPhone:';
+      body = `<ol class="nsteps">${step(1, `Tap the Share button <span class="ico">${shareIco}</span> at the bottom of Safari.`)}${step(2, `Tap <b>Add to Home Screen</b> <span class="ico">${addIco}</span>, then <b>Add</b>.`)}${step(3, 'Open <b>To Do</b> from your Home Screen and tap <b>Turn on notifications</b>.')}</ol>`; break;
+    case 'off':
+      title = 'Turn on notifications'; sub = `So ${who} reach you on this phone.`; body = big('pushon', 'Turn on notifications'); break;
+    case 'on': return '';   // on: no card; status + Send test live in the footer "Notifications" sheet
+    case 'denied':
+      title = 'Notifications are blocked'; sub = 'You can turn them back on:';
+      body = `<ol class="nsteps">${step(1, 'Open the <b>Settings</b> app.')}${step(2, 'Tap <b>Notifications</b>, then <b>To Do</b>.')}${step(3, 'Turn on <b>Allow Notifications</b>, then come back here.')}</ol>${big('pushrecheck', 'I turned them on', ' sec')}`; break;
+    case 'notready':
+      title = 'Notifications are almost ready'; sub = 'TraCy is finishing the setup. Everything else works now.'; break;
+    case 'unsupported':
+      title = 'Notifications aren’t available'; sub = 'This browser doesn’t support web push.'; break;
+    default: return '';
+  }
+  return `<section id="notifsec"><div class="card ncard${notifyPulse ? ' pulse' : ''}"><div class="nhead"><div class="bell">${bell}</div><div class="nt">${title}<small>${sub}</small></div></div>${body}</div></section>`;
+}
+const chevR = '<svg class="chev" viewBox="0 0 8 13"><polyline points="1.5 1.5 6.5 6.5 1.5 11.5"/></svg>';
+const chatIco = '<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+function inboxBannerHTML(){
+  if (ROLE !== 'todo' || !inbox.length) return '';
+  const n = inbox.length, last = inbox[inbox.length - 1];
+  return `<section><button type="button" class="card ibanner" id="inboxbanner"><span class="dot">${chatIco}</span><span class="bt">${n === 1 ? '1 new message' : n + ' new messages'} from Daniel<small>${esc(last.text)}</small></span>${chevR}</button></section>`;
+}
+function renderMessages(){
+  $('#title').textContent = $('#navtitle').textContent = 'Messages';
+  const t = ts => { const d = fmtET(ts,{month:'short',day:'numeric'}), today = fmtET(new Date().toISOString(),{month:'short',day:'numeric'});
+    return (d === today ? '' : d + ', ') + fmtET(ts,{hour:'numeric',minute:'2-digit'}); };
+  const back = `<button type="button" class="iback" id="msgback"><svg viewBox="0 0 10 17"><polyline points="8.5 1.5 1.5 8.5 8.5 15.5"/></svg>To Do</button>`;
+  const body = inbox.length
+    ? `<section><h2><span>From Daniel</span><span>${inbox.length}</span></h2><div class="card">${inbox.slice().reverse().map(m => `<div class="imsg"><div class="imsg-text">${esc(m.text)}</div>
+        <div class="imsg-row"><span>${esc(t(m.ts_et))}</span>${m.task_added ? '<span class="dstat none">+ Task</span>' : ''}<span class="sp"></span><button type="button" class="gotit" data-ack="${esc(m.id)}">Got it</button></div></div>`).join('')}</div></section>`
+      + (inbox.length > 1 ? `<section><div class="card"><button type="button" class="ackall" id="ackall">Got it on all ${inbox.length}</button></div></section>` : '')
+    : `<section><div class="card iempty"><b>You’re all caught up</b><span>No new messages from Daniel.</span><br><button type="button" class="gotit" id="msgback2">Back to To Do</button></div></section>`;
+  $('#sections').innerHTML = back + body;
+}
+async function ackMsgs(ids){
+  const before = inbox; inbox = ids === 'all' ? [] : inbox.filter(m => !ids.includes(m.id)); render(); try { navigator.vibrate && navigator.vibrate(8); } catch {}
+  try { const j = await (await api('/api/yells/messages/ack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ids === 'all' ? {all:true} : {ids})})).json();
+    if (!j.ok) throw 0; inbox = j.items || inbox; render(); }
+  catch { inbox = before; render(); toast('Couldn’t save — try again'); }
+}
+function render(){
+  if(!data) return;
+  if (ROLE === 'todo' && msgView) return renderMessages();
+  $('#title').textContent = $('#navtitle').textContent = (ROLE === 'admin' && VIEW === 'leads') ? 'Leads' : 'To Do';
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.view === VIEW));
+  if (ROLE === 'admin' && VIEW === 'leads') { const d0 = data.date ? new Date(data.date+'T12:00:00-04:00') : new Date();
+    $('#date').textContent = d0.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'long',month:'long',day:'numeric'}); return renderLeads(); }
+  const apEl = $('#apedit'); const apDraft = apEl ? apEl.value : null;
+  openRow = null;
+  // keep any in-progress add text across re-renders
+  const inp = $('#newtext'); const draft = inp ? inp.value : ''; const hadFocus = inp && document.activeElement === inp;
+  const d = data.date ? new Date(data.date+'T12:00:00-04:00') : new Date();
+  $('#date').textContent = d.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'long',month:'long',day:'numeric'});
+  $('#updated').textContent = data.updated_at ? 'Updated ' + fmtET(data.updated_at,{hour:'numeric',minute:'2-digit'}) + ' ET' : '';
+  const sections = data.sections.some(s => s.title === ADD) ? data.sections : [...data.sections, {title:ADD, tasks:[]}];
+  const apSec = `<section><h2><span>Needs your OK</span><span>${approvals.length}</span></h2><div class="card">${approvals.length ? approvals.map(approvalHTML).join('') : '<div class="empty">Nothing here</div>'}</div></section>`;
+  const allC = deals.length && deals.every(d => isDealCollapsed(d.id));
+  const dealSec = `<section><h2><span>Deals</span><span>${deals.length}${deals.length?`<button type="button" class="hbtn" id="dealsAll">${allC?'Expand all':'Collapse all'}</button>`:''}</span></h2>${deals.length ? deals.map(dealHTML).join('') : '<div class="card"><div class="empty">Nothing here</div></div>'}</section>`;
+  const ti = sections.findIndex(s => s.title === 'Today');
+  const parts = sections.map((s, i) => {
+    const open = s.tasks.filter(t=>!t.done).length; const mine = s.title === ADD;
+    let rows = s.tasks.map(rowHTML).join('');
+    if (mine) rows += (adding
+      ? `<form class="addform" id="add"><div class="circle"></div><input id="newtext" placeholder="New Reminder" autocomplete="off" enterkeyhint="done" maxlength="500"><button type="submit">Add</button></form>`
+      : `<div class="addrow" id="addrow" role="button" tabindex="0"><span class="plus">${plus}</span>New Reminder</div>`);
+    else if (!s.tasks.length) rows = '<div class="empty">Nothing here</div>';
+    return `<section><h2><span>${esc(s.title)}</span><span>${open}</span></h2><div class="card">${rows}</div></section>`;
+  });
+  if (ROLE === 'admin') parts.splice(ti >= 0 ? ti + 1 : 0, 0, dealSec);
+  const mt = $('#msgtext'); const msgFocus = mt && document.activeElement === mt;
+  const nm = $('#notifmenu'); if (nm) nm.hidden = pushState !== 'on';
+  const nh = notifHTML(), nTop = ['install', 'off', 'denied'].includes(pushState);
+  $('#sections').innerHTML = inboxBannerHTML() + (ROLE === 'admin' ? apSec + msgHTML() : '') + (nTop ? nh : '') + parts.join('') + (nTop ? '' : nh) + (ROLE === 'admin' ? devicesHTML() : '');
+  const mt2 = $('#msgtext'); if (mt2) { mt2.value = msgDraft; if (msgFocus) mt2.focus(); }
+  const ae = $('#apedit'); if (ae && apDraft != null) ae.value = apDraft;
+  const ni = $('#newtext'); if (ni) { ni.value = draft; if (hadFocus) ni.focus(); }
+}
+let loading = false;
+async function load(quiet){
+  if (loading) return; loading = true; $('#refresh svg').classList.add('spin');
+  try {
+    const get = u => api(u).then(r=>r.json());
+    if (!ME) await whoAmI();
+    if (ROLE === 'admin') {
+      const [t, d, a, l, n, dv] = await Promise.all([get(T), get('/api/deals').catch(()=>null), get('/api/approvals').catch(()=>null), get('/api/leads').catch(()=>null), get('/api/notify/yells').catch(()=>null), get('/api/devices').catch(()=>null)]);
+      data = t; if (d && d.ok) deals = d.deals; if (a && a.ok) approvals = a.items; if (l && l.ok) leadData = l; if (n && n.ok) notifyInfo = n; if (dv && dv.ok) devices = dv.devices;
+    } else { const [t, m] = await Promise.all([get(T), get('/api/yells/messages').catch(()=>null)]); data = t; if (m && m.ok) inbox = m.items; }
+    render(); renderStale(); if(!quiet) toast('Up to date'); }
+  catch(e){ if (e && e.message === 'login') return; toast("Couldn't connect — check your signal and try again"); }
+  finally { loading = false; $('#refresh svg').classList.remove('spin'); }
+}
+function copyText(t){
+  // navigator.clipboard needs a secure context (the Tailscale http URL isn't), so fall back to execCommand.
+  try { if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).then(()=>true, ()=>legacyCopy(t)); } catch {}
+  return Promise.resolve(legacyCopy(t));
+}
+function legacyCopy(t){
+  const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly',''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px;';
+  document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, t.length);
+  let ok = false; try { ok = document.execCommand('copy'); } catch {} ta.remove(); return ok;
+}
+function setCollapsed(card, collapse, animate){
+  const id = card.dataset.dealcard; const body = card.querySelector('.deal-body'); const head = card.querySelector('.deal-head');
+  if (collapse === card.classList.contains('collapsed')) return;
+  collapse ? openDeals.delete(id) : openDeals.add(id);
+  head.setAttribute('aria-expanded', String(!collapse));
+  const btn = $('#dealsAll'); if (btn) btn.textContent = deals.every(d => isDealCollapsed(d.id)) ? 'Expand all' : 'Collapse all';
+  const op = card.querySelector('.swipe.revealed'); if (op) closeRow(op);
+  if (!animate) { card.classList.toggle('collapsed', collapse); body.style.height = ''; return; }
+  if (collapse) { body.style.height = body.scrollHeight + 'px'; void body.offsetHeight; card.classList.add('collapsed'); body.style.height = '0px'; }
+  else { body.style.height = '0px'; card.classList.remove('collapsed'); void body.offsetHeight; body.style.height = body.scrollHeight + 'px';
+    const done = ev => { if (ev.target !== body || ev.propertyName !== 'height') return; body.removeEventListener('transitionend', done); if (!card.classList.contains('collapsed')) body.style.height = ''; };
+    body.addEventListener('transitionend', done); }
+}
+function openAdd(){ adding = true; render(); const i = $('#newtext'); if (i) i.focus(); }
+document.addEventListener('click', async e => {
+  if (suppressClick) { suppressClick = false; e.preventDefault(); return; }
+  if (e.target.closest('#pushgo')) { handoff = null; setTimeout(prepHandoff, 1500); return; }   // token is single use; default link navigation opens Safari
+  if (e.target.closest('#pushon')) return enablePush();
+  if (e.target.closest('#pushrecheck')) { await checkPush(); render(); if (pushState === 'denied') toast('Still blocked in Settings'); return; }
+  if (e.target.closest('#pushtest')) { try { const j = await (await api('/api/push/test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).json(); toast(j.sent ? 'Test sent' : 'Couldn’t send — tap Turn on notifications again'); if (!j.sent) { pushState = 'off'; render(); } } catch { toast('Test failed'); } return; }
+  if (e.target.closest('#msgsend')) return sendMsg();
+  if (e.target.closest('#histtog')) { histOpen = !histOpen; if (!histOpen) { histShown = 5; histConfirm = false; } return render(); }
+  if (e.target.closest('#histclear')) { histConfirm = true; return render(); }
+  if (e.target.closest('#histno')) { histConfirm = false; return render(); }
+  if (e.target.closest('#histyes')) { histConfirm = false;
+    try { const j = await (await api('/api/notify/yells/clear',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).json(); if (!j.ok) throw 0;
+      histOpen = false; histShown = 5; toast('History cleared'); await load(true); } catch { toast('Couldn’t clear — try again'); render(); } return; }
+  if (e.target.closest('#inboxbanner')) { msgView = true; render(); scrollTo(0,0); return; }
+  if (e.target.closest('#msgback') || e.target.closest('#msgback2')) { msgView = false; render(); scrollTo(0,0); return; }
+  const ackB = e.target.closest('[data-ack]'); if (ackB) return ackMsgs([ackB.dataset.ack]);
+  if (e.target.closest('#ackall')) return ackMsgs('all');
+  if (e.target.closest('#histmore')) { histShown += 10; return render(); }
+  if (e.target.closest('#msgsec')) return;
+  const vb = e.target.closest('#seg button'); if (vb) { VIEW = vb.dataset.view; try { localStorage.setItem('todo.view', VIEW); } catch {} adding = false; editing = null; render(); scrollTo(0,0); return; }
+  const fb = e.target.closest('[data-filter]'); if (fb) { leadFilter = fb.dataset.filter; return render(); }
+  const sb = e.target.closest('.lead [data-status]');
+  if (sb) { const card = sb.closest('.lead'); const id = card.dataset.lead, status = sb.dataset.status; const L = leadData.leads.find(x=>x.id===id); if (!L || L.status === status) return;
+    const before = L.status; L.status = status; render(); try { navigator.vibrate && navigator.vibrate(8); } catch {}
+    try { const r = await api(`/api/leads/${encodeURIComponent(id)}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})}); const j = await r.json(); if (!j.ok) throw 0; toast('Marked ' + cap(status)); }
+    catch { L.status = before; render(); toast('Save failed — try again'); } return; }
+  if (e.target.closest('.lead')) return;
+  if (e.target.closest('#signout')) { if (!confirm('Sign out on this device? You’ll need a new code to sign back in.')) return; try { await api('/api/logout',{method:'POST'}); } catch {} CD.clearToken(); showPair(); return; }
+  const db = e.target.closest('.delbtn'); if (db) { e.stopPropagation(); return doDelete(db.closest('.swipe'), 'swipe'); }
+  if (openRow) { const inside = openRow.contains(e.target); closeRow(openRow); if (!inside || e.target.closest('.task')) return; }
+  if (e.target.closest('#sheet') || e.target.closest('#toast')) return;
+  const dlA = e.target.closest('a.dl-link');
+  if (dlA) { if (dlA.dataset.copy) copyText(dlA.dataset.copy).then(ok => toast(ok ? 'Address copied' : 'Couldn’t copy address')); return; }
+  if (e.target.closest('a')) return;
+  if (e.target.closest('#dealsAll')) { const allC = deals.every(d => isDealCollapsed(d.id));
+    document.querySelectorAll('.deal').forEach(c => setCollapsed(c, !allC, true)); return; }
+  const dh = e.target.closest('.deal-head'); if (dh) { const c = dh.closest('.deal'); setCollapsed(c, !c.classList.contains('collapsed'), true); return; }
+  if (e.target.closest('#addrow')) return openAdd();
+  const mb = e.target.closest('[data-more]'); if (mb) { const id = mb.dataset.more; expanded.has(id) ? expanded.delete(id) : expanded.add(id); return render(); }
+  const apRow = e.target.closest('.approval');
+  if (apRow) {
+    const id = apRow.dataset.id, btn = e.target.closest('button'); if (!btn) return;
+    if (btn.classList.contains('ap-edit')) { editing = id; render(); const ta = $('#apedit'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
+    if (btn.classList.contains('ap-cancel')) { editing = null; return render(); }
+    if (btn.classList.contains('ap-save')) {
+      const body = ($('#apedit')||{}).value || ''; if (!body.trim()) return toast('Message can’t be empty');
+      try { const r = await api(`/api/approvals/${encodeURIComponent(id)}/edit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({body})});
+        const j = await r.json(); if (!j.ok) throw 0; editing = null; const a = approvals.find(x=>x.id===id); if (a) Object.assign(a, j.item); render(); toast('Saved — tap Approve to send'); }
+      catch { toast('Save failed — try again'); } return;
+    }
+    if (btn.classList.contains('ap-skip')) return doDelete(apRow.parentElement);
+    if (btn.classList.contains('ap-ok')) return decideApproval(apRow.parentElement, 'approve');
+    return;
+  }
+  const row = e.target.closest('.task'); if(!row) return;
+  const dealId = row.parentElement.dataset.deal;
+  const id = row.dataset.id; const nowDone = !row.classList.contains('done');
+  row.classList.toggle('done'); row.setAttribute('aria-checked', nowDone);
+  if (nowDone) { row.classList.remove('pop'); void row.offsetWidth; row.classList.add('pop'); }
+  try { navigator.vibrate && navigator.vibrate(8); } catch {}
+  try {
+    const turl = dealId != null ? `/api/deals/${encodeURIComponent(dealId)}/checklist/${encodeURIComponent(id)}/toggle` : T+'/'+encodeURIComponent(id)+'/toggle';
+    const [r] = await Promise.all([api(turl,{method:'POST'}), sleep(340)]);
+    const j = await r.json(); if(!j.ok) throw 0;
+    if (dealId != null) { const d = deals.find(x=>x.id===dealId); const t = d && d.checklist.find(x=>String(x.id)===id); if (t) { t.done = j.task.done; if (j.task.done) t.done_at = j.task.done_at; else delete t.done_at; } }
+    else for (const s of data.sections) for (const t of s.tasks) if (t.id===id) Object.assign(t, j.task), (!j.task.done && delete t.done_at);
+    if (dealId == null) data.updated_at = j.updated_at; render(); toast(j.task.done ? (ROLE === 'admin' ? 'Checked off — TraCy notified' : 'Checked off') : 'Unchecked');
+  } catch { row.classList.toggle('done'); row.setAttribute('aria-checked', !nowDone); toast('Save failed — try again'); }
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.task, #addrow, .deal-head')) { e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('focusout', e => {
+  if (e.target.id === 'newtext') setTimeout(() => {
+    const i = $('#newtext'); if (adding && i && !i.value.trim() && document.activeElement !== i) { adding = false; render(); }
+  }, 150);
+});
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'add') return;
+  e.preventDefault(); const inp=$('#newtext'); const text=inp.value.trim(); if(!text) return;
+  try { const r = await api(T+'/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+    const j = await r.json(); if(!j.ok) throw 0; inp.value=''; inp.blur(); adding = false; await load(true); toast(ROLE === 'admin' ? 'Added for TraCy' : 'Added'); }
+  catch { toast('Add failed — try again'); }
+});
+$('#refresh').addEventListener('click', ()=>load());
+// ---- Swipe to delete / long-press action sheet ----
+let openRow = null, suppressClick = false, gesture = null;
+const OPEN_X = 88;
+function setX(sw, x, anim){ const t = sw.querySelector('.task'); t.classList.toggle('anim', !!anim); t.style.transform = x ? `translateX(${x}px)` : ''; sw._x = x; }
+function closeRow(sw){ if(!sw) return; setX(sw, 0, true); sw.classList.remove('revealed'); if (openRow === sw) openRow = null;
+  setTimeout(()=>{ if(!sw.classList.contains('revealed') && !(gesture && gesture.sw===sw)) sw.classList.remove('swiping'); }, 320); }
+function findItem(sw){
+  const id = sw.dataset.id;
+  if (!sw.dataset.approval && sw.dataset.deal == null) for (const s of data.sections) { const i = s.tasks.findIndex(t => t.id === id); if (i >= 0) return { list:s.tasks, index:i, item:s.tasks[i], section:s.title }; }
+  if (sw.dataset.approval) { const i = approvals.findIndex(a=>a.id===id); return i>=0 ? { list:approvals, index:i, item:{...approvals[i], text:approvals[i].title}, approval:true } : null; }
+  if (sw.dataset.deal != null) for (const d of deals) if (String(d.id) === sw.dataset.deal) { const L=d.checklist||[]; const i=L.findIndex(t=>String(t.id)===id); if(i>=0) return { list:L, index:i, item:L[i], dealId:sw.dataset.deal }; }
+  return null;
+}
+async function collapse(sw){
+  setX(sw, -sw.offsetWidth, true); sw.classList.add('swiping'); await sleep(180);
+  sw.style.height = sw.offsetHeight + 'px'; void sw.offsetHeight; sw.classList.add('collapsing'); sw.style.height = '0px'; sw.style.opacity = '0'; await sleep(290);
+}
+async function decideApproval(sw, act, via){
+  if (!sw || sw._deleting) return; sw._deleting = true; if (openRow === sw) openRow = null; const id = sw.dataset.id;
+  try { navigator.vibrate && navigator.vibrate(10); } catch {}
+  const req = api(`/api/approvals/${encodeURIComponent(id)}/${act}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(via?{via}:{})}).then(r=>r.json());
+  if (act === 'approve') { sw.querySelector('.ap-ok').textContent = 'Approved ✓'; await sleep(250); }
+  await collapse(sw);
+  try { const j = await req; if (!j.ok) throw 0; approvals = approvals.filter(a=>a.id!==id); if (editing===id) editing=null; render();
+    if (act === 'approve') toast('Approved — TraCy will send it');
+    else toast('Skipped', { label:'Undo', ms:4000, fn: async () => {
+      try { const r = await api(`/api/approvals/${encodeURIComponent(id)}/restore`,{method:'POST'}); const k = await r.json(); if (!k.ok) throw 0; await load(true); toast('Restored'); }
+      catch { toast('Undo failed — try again'); await load(true); } } });
+  } catch { await load(true); toast((act==='approve'?'Approve':'Skip') + ' failed — try again'); }
+}
+async function doDelete(sw, via){
+  if (sw && sw.dataset.approval) return decideApproval(sw, 'skip', via || 'button');
+  if (!sw || sw._deleting) return; sw._deleting = true; if (openRow === sw) openRow = null;
+  const found = findItem(sw); const deal = sw.dataset.deal;
+  // slide fully out, then collapse the row
+  setX(sw, -sw.offsetWidth, true); sw.classList.add('swiping');
+  try { navigator.vibrate && navigator.vibrate(10); } catch {}
+  const url = deal != null ? `/api/deals/${encodeURIComponent(deal)}/checklist/${encodeURIComponent(sw.dataset.id)}/delete`
+                           : `${T}/${encodeURIComponent(sw.dataset.id)}/delete`;
+  const req = api(url, {method:'POST'}).then(r => r.json());
+  await sleep(180);
+  sw.style.height = sw.offsetHeight + 'px'; void sw.offsetHeight; sw.classList.add('collapsing'); sw.style.height = '0px'; sw.style.opacity = '0';
+  await sleep(290);
+  try {
+    const j = await req; if (!j.ok) throw 0;
+    if (found) found.list.splice(found.list.indexOf(found.item), 1);
+    if (j.updated_at) data.updated_at = j.updated_at; render();
+    const payload = j.dealId != null ? { item:j.item, dealId:j.dealId, index:j.index } : { item:j.item, section:j.section, index:j.index };
+    toast('Deleted', { label:'Undo', ms:4000, fn: async () => {
+      try { const r = await api(T+'/restore', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const k = await r.json(); if (!k.ok) throw 0; await load(true); toast('Restored'); }
+      catch { toast('Undo failed — try again'); await load(true); }
+    }});
+  } catch { await load(true); toast('Delete failed — try again'); }
+}
+// action sheet
+let sheetRow = null;
+function showSheet(sw){ sheetRow = sw; $('#sheet').classList.remove('nmode'); const f = findItem(sw); $('#sheettitle').textContent = f ? f.item.text : ''; $('#sheetdel').textContent = sw.dataset.approval ? 'Skip' : 'Delete';
+  $('#sheet').classList.add('show'); $('#sheet').setAttribute('aria-hidden','false'); }
+function showNotifSheet(){ sheetRow = 'notif'; $('#sheet').classList.add('nmode');
+  $('#sheettitle').innerHTML = '<b>Notifications: On</b>For this device.'; $('#sheetdel').textContent = 'Send test notification';
+  $('#sheet').classList.add('show'); $('#sheet').setAttribute('aria-hidden','false'); }
+async function sendTestPush(){ try { const j = await (await api('/api/push/test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).json();
+  toast(j.sent ? 'Test sent' : 'Couldn’t send — tap Turn on notifications again'); if (!j.sent) { pushState = 'off'; render(); } } catch { toast('Test failed'); } }
+$('#notifmenu').addEventListener('click', e => { e.stopPropagation(); showNotifSheet(); });
+function hideSheet(){ $('#sheet').classList.remove('show'); $('#sheet').setAttribute('aria-hidden','true'); }
+$('#sheetcancel').addEventListener('click', e => { e.stopPropagation(); sheetRow = null; hideSheet(); });
+$('#sheet .dim').addEventListener('click', e => { e.stopPropagation(); sheetRow = null; hideSheet(); });
+$('#sheetdel').addEventListener('click', e => { e.stopPropagation(); const sw = sheetRow; sheetRow = null; hideSheet();
+  if (sw === 'notif') return sendTestPush(); setTimeout(()=>doDelete(sw, 'long-press'), 200); });
+document.addEventListener('contextmenu', e => { if (e.target.closest('.swipe')) e.preventDefault(); });
+document.addEventListener('pointerdown', e => {
+  const task = e.target.closest('.task'); if (!task || e.target.closest('a, button, textarea, input') || e.button > 0) return;
+  const sw = task.parentElement; if (openRow && openRow !== sw) { closeRow(openRow); suppressClick = true; gesture = null; return; }
+  gesture = { sw, task, id:e.pointerId, x0:e.clientX, y0:e.clientY, base:sw._x||0, mode:null, lp:null };
+  gesture.lp = setTimeout(() => { if (gesture && gesture.sw === sw && !gesture.mode) { gesture.mode = 'lp'; suppressClick = true;
+    try { navigator.vibrate && navigator.vibrate(12); } catch {} if (openRow) closeRow(openRow); showSheet(sw); } }, 500);
+});
+document.addEventListener('pointermove', e => {
+  const g = gesture; if (!g || e.pointerId !== g.id || g.mode === 'lp' || g.mode === 'v') return;
+  const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+  if (!g.mode) {
+    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2) { g.mode = 'h'; clearTimeout(g.lp); g.sw.classList.add('swiping');
+      try { g.task.setPointerCapture(e.pointerId); } catch {} y0 = null; pulled = 0; if (typeof ptr !== 'undefined') ptr.style.height = '0'; }
+    else if (Math.abs(dy) > 10 || Math.abs(dx) > 10) { g.mode = 'v'; clearTimeout(g.lp); return; }
+    else return;
+  }
+  let x = g.base + dx; const w = g.sw.offsetWidth;
+  if (x > 0) x = x / 4; if (x < -w) x = -w - (-w - x) / 4;
+  setX(g.sw, x, false);
+  g.sw.classList.toggle('full', x < -w * 0.6);
+});
+function endGesture(e, cancelled){
+  const g = gesture; if (!g || (e && e.pointerId !== g.id)) return; clearTimeout(g.lp); gesture = null;
+  if (g.mode === 'lp') { setTimeout(()=>{ suppressClick = false; }, 450); return; }
+  if (g.mode !== 'h') return;
+  suppressClick = true; setTimeout(()=>{ suppressClick = false; }, 400);
+  const x = g.sw._x || 0, w = g.sw.offsetWidth;
+  if (!cancelled && x < -w * 0.6) return doDelete(g.sw, 'swipe');
+  if (x < -OPEN_X / 2) { setX(g.sw, -OPEN_X, true); g.sw.classList.add('revealed'); openRow = g.sw; }
+  else closeRow(g.sw);
+}
+document.addEventListener('pointerup', e => endGesture(e, false));
+document.addEventListener('pointercancel', e => { const g = gesture; if (g && g.mode === 'h') return endGesture(e, false); if (g) { clearTimeout(g.lp); gesture = null; } });
+addEventListener('scroll', () => { if (openRow) closeRow(openRow); }, {passive:true});
+// nav bar: translucent once the large title scrolls under it
+const nav = $('#nav'); const onScroll = () => nav.classList.toggle('scrolled', scrollY > 34);
+addEventListener('scroll', onScroll, {passive:true}); onScroll();
+// pull-to-refresh
+let y0=null, pulled=0; const ptr=$('#ptr'), ptrIcon=ptr.querySelector('svg');
+addEventListener('touchstart', e => { y0 = scrollY<=0 ? e.touches[0].clientY : null; pulled=0; ptr.style.transition='none'; }, {passive:true});
+addEventListener('touchmove', e => { if(y0==null) return; pulled=Math.max(0,e.touches[0].clientY-y0); const h=Math.min(pulled/2,56);
+  ptr.style.height=h+'px'; ptrIcon.style.transform=`rotate(${Math.min(pulled,180)*2}deg)`; ptrIcon.style.opacity=Math.min(1,pulled/90); }, {passive:true});
+addEventListener('touchend', async () => { ptr.style.transition='';
+  if(pulled>90){ ptr.style.height='44px'; ptrIcon.style.transform=''; ptrIcon.classList.add('spin'); await load(); ptrIcon.classList.remove('spin'); }
+  ptr.style.height='0'; y0=null; pulled=0; });
+document.addEventListener('input', e => { if (e.target.id === 'msgtext') { msgDraft = e.target.value; const b = $('#msgsend'), n = notifyInfo ? notifyInfo.devices : 0;
+  if (b && !sending) b.disabled = !(msgDraft.trim() && (n || msgAddTask)); } });
+document.addEventListener('change', e => { if (e.target.id === 'msgtask') { msgAddTask = e.target.checked; render(); } });
+async function sendMsg(){
+  const message = msgDraft.trim(); if (!message || sending) return; sending = true; render();
+  try { const r = await api('/api/notify/yells',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message, add_task:msgAddTask})});
+    const j = await r.json(); if (!j.ok) throw new Error(j.error || 'failed');
+    msgDraft = ''; const m = $('#msgtext'); if (m) m.blur();
+    toast(j.status === 'sent' || j.status === 'partial' ? (j.task_added ? 'Sent and added to her list' : 'Sent to Yells') : j.task_added ? 'Added to her list' : 'Not delivered');
+  } catch (x) { toast(x.message && x.message !== 'failed' ? x.message : 'Send failed — try again'); }
+  finally { sending = false; await load(true); }
+}
+// ---- Web Push opt-in (must start from a tap on iOS 16.4+ home-screen apps) ----
+const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(r, c => c.charCodeAt(0)); };
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = !!navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+async function checkPush(){ pushState = await CD.pushCheck(isIOS, standalone); return pushState; }
+async function enablePush(){
+  try { pushState = await CD.pushEnable(); render();
+    if (pushState === 'on') toast('Notifications on'); else toast('Notifications not allowed'); }
+  catch { toast('Couldn’t turn on notifications'); }
+}
+// ---- Login handoff for the old http address: a 3-min, single-use token so Safari opens the secure app already signed in ----
+let handoff = null;   // { url, at }
+const secureBase = () => location.href;
+const handoffHref = () => handoff && Date.now() - handoff.at < 150e3 ? handoff.url : secureBase() + '/';
+async function prepHandoff(){ return;   // no http/https handoff on GitHub Pages (always https)
+  if (pushState !== 'insecure' || document.hidden || (ME && ME.open)) return;
+  if (handoff && Date.now() - handoff.at < 120e3) return;
+  try { const j = await (await api('/api/handoff',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).json();
+    if (j.ok && /^https:\/\//.test(j.url)) handoff = { url: j.url, at: Date.now() }; } catch {}
+  const a = $('#pushgo'); if (a) a.href = handoffHref();
+}
+setInterval(() => { const a = $('#pushgo'); if (a) { prepHandoff(); a.href = handoffHref(); } }, 30e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) prepHandoff(); });
+// Arrived from the handoff (?notify=1): drop the flag from the URL and point at the card.
+if (new URLSearchParams(location.search).has('notify')) { notifyPulse = true; history.replaceState(null, '', location.pathname);
+  setTimeout(() => { const c = $('#notifsec'); if (c) c.scrollIntoView({ block:'center', behavior:'smooth' }); }, 600); setTimeout(() => { notifyPulse = false; }, 4000); }
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { const d = e.data || {};
+  if (d.type === 'open') { try { if (new URL(d.url, location.origin).searchParams.get('view') === 'messages' && ROLE === 'todo') { msgView = true; render(); scrollTo(0,0); } } catch {} }
+  if (d.type === 'refresh' || d.type === 'open') load(true); });
+async function whoAmI(){
+  const j = await (await api('/api/me')).json(); ME = j;
+  ROLE = j.role === 'admin' ? 'admin' : 'todo'; if (j.box_last_sync_at) CD.boxLastSync = j.box_last_sync_at;
+  T = ROLE === 'admin' ? '/api/tasks' : '/api/yells/tasks'; ADD = ROLE === 'admin' ? 'My adds' : 'To Do';
+  $('#seg').hidden = ROLE !== 'admin';
+  $('#signout').hidden = !!j.open;
+  $('#foot').textContent = ROLE === 'admin' ? 'Check-offs go straight to TraCy.' : `Signed in as ${j.display || j.user}.`;
+}
+// ---- Live refresh: poll a tiny version stamp every 5s while visible; refetch only when it changes. No AI, no tokens. ----
+let ver = null, appVer = null, pollTimer = null, polling = false;
+const busy = () => loading || adding || editing || gesture || openRow || $('#sheet').classList.contains('show') ||
+  document.querySelector('.swipe.collapsing, .swipe.swiping, .task.pop') || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName));
+async function poll(){
+  if (document.hidden || polling) return; polling = true;
+  try {
+    const r = await api('/api/version', ver ? {headers:{'If-None-Match':`"${ver}"`}} : undefined);
+    if (r.status === 304) return;
+    const j = await r.json();
+    if (j.app) { if (appVer === null) appVer = j.app; else if (j.app !== appVer && !busy()) { location.reload(); return; } }
+    renderStale(); if (!j.v || j.v === ver) return;
+    if (ver === null) { ver = j.v; return; }
+    if (busy()) return;           // try again on the next tick, after the gesture/edit finishes
+    ver = j.v; await load(true);
+  } catch {} finally { polling = false; }
+}
+function startPolling(){ if (!pollTimer) pollTimer = setInterval(poll, ((CD.cfg.pollSeconds || 20) * 1000)); poll(); }
+function stopPolling(){ clearInterval(pollTimer); pollTimer = null; }
+document.addEventListener('visibilitychange', ()=>{ document.hidden ? stopPolling() : startPolling(); });
+addEventListener('focus', poll); addEventListener('pageshow', e => { if (e.persisted) poll(); });
+// ---- Devices (Daniel): list, Revoke, Add a device (one-time 8-character code, valid 15 minutes) ----
+let devices = [], devOpen = false, devSure = null, devCode = null;
+function devicesHTML(){
+  const ago = ts => { if (!ts) return 'never'; const m = Math.round((Date.now() - Date.parse(ts)) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m/60) + ' hr ago' : fmtET(ts,{month:'short',day:'numeric'}); };
+  const rows = !devOpen ? '' : devices.map(d => `<div class="devrow"><div class="dv"><b>${esc(d.display)} · ${esc(d.label || 'Device')}${d.current ? ' (this one)' : ''}</b><span>Last used ${esc(ago(d.last_seen_at))}${d.push ? ' · notifications on' : ''}</span></div>
+      <button type="button" class="${devSure === d.device_id ? 'sure' : ''}" data-revoke="${esc(d.device_id)}">${devSure === d.device_id ? 'Revoke?' : 'Revoke'}</button></div>`).join('')
+    + `<div class="devadd"><button type="button" data-pair="daniel">Add a device for me</button><button type="button" data-pair="yells">Add for Yells</button></div>`
+    + (devCode ? `<div class="devcode"><span>Code for ${esc(devCode.display)}’s new device</span><b>${esc(devCode.code)}</b><span>Open Criterion Daily on that phone and type this code. Works once, for ${devCode.minutes} minutes.</span></div>` : '');
+  return `<section id="devsec"><h2><span>Devices</span><span>${devices.length}</span></h2><div class="card">
+    <button type="button" class="hist-tog" id="devtog" aria-expanded="${devOpen}">${devOpen ? 'Hide' : 'Manage devices'}<svg viewBox="0 0 12 12"><polyline points="2.5 4.5 6 8 9.5 4.5"/></svg></button>${rows}</div></section>`;
+}
+document.addEventListener('click', async e => {
+  if (e.target.closest('#devtog')) { devOpen = !devOpen; devSure = null; if (!devOpen) devCode = null; return render(); }
+  const rv = e.target.closest('[data-revoke]');
+  if (rv) { const id = rv.dataset.revoke; if (devSure !== id) { devSure = id; return render(); }
+    devSure = null; const me = devices.find(d => d.device_id === id && d.current);
+    try { const j = await (await api(`/api/devices/${encodeURIComponent(id)}/revoke`,{method:'POST'})).json(); if (!j.ok) throw 0;
+      if (me) { CD.clearToken(); return showPair(); } toast('Device removed'); await load(true); } catch { toast('Couldn’t remove — try again'); render(); } return; }
+  const pb = e.target.closest('[data-pair]');
+  if (pb) { try { const j = await (await api('/api/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user:pb.dataset.pair})})).json(); if (!j.ok) throw 0;
+      devCode = j; render(); setTimeout(() => { if (devCode === j) { devCode = null; render(); } }, j.minutes * 60e3); } catch { toast('Couldn’t make a code — try again'); } return; }
+});
+// "as of": deals and leads come from the box; when it hasn't synced lately, say so (tasks, approvals and messages are always live).
+function renderStale(){
+  const el = $('#stale'); if (!el) return; const ts = CD.boxLastSync; const min = CD.cfg.staleAfterMin || 10;
+  const old = ROLE === 'admin' && ts && Date.now() - Date.parse(ts) > min * 60e3;
+  el.classList.toggle('show', !!old);
+  el.textContent = old ? `TraCy is offline. Deals and leads as of ${fmtET(ts,{weekday:'short',hour:'numeric',minute:'2-digit'})} ET; approved texts go out when she’s back.` : '';
+}
+// ---- Pairing screen (first open, or after Sign out / Revoke) ----
+function showPair(){ stopPolling(); ME = null; data = null; $('#pair').classList.add('show'); $('#pair').setAttribute('aria-hidden','false');
+  const inst = isIOS && !standalone && !sessionStorage.getItem('cd.inhere'); $('#pinstall').hidden = !inst; $('#pform').hidden = inst; }
+function hidePair(){ $('#pair').classList.remove('show'); $('#pair').setAttribute('aria-hidden','true'); }
+CD.onUnpaired = showPair;
+$('#pinhere').addEventListener('click', () => { try { sessionStorage.setItem('cd.inhere','1'); } catch {} $('#pinstall').hidden = true; $('#pform').hidden = false; $('#pcode').focus(); });
+$('#pcode').addEventListener('input', e => { let v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8); e.target.value = v.length > 4 ? v.slice(0,4) + '-' + v.slice(4) : v;
+  $('#pgo').disabled = v.length !== 8; $('#perr').textContent = ''; });
+$('#pform').addEventListener('submit', async e => { e.preventDefault(); const code = $('#pcode').value; $('#pgo').disabled = true; $('#pgo').textContent = 'Checking…';
+  try { const j = await CD.pair(code); if (!j.ok) { $('#perr').textContent = j.error || 'That didn’t work. Try again.'; return; }
+    hidePair(); $('#pcode').value = ''; await boot(); toast(`Signed in as ${j.display}`); }
+  catch { $('#perr').textContent = 'Couldn’t connect. Check your signal and try again.'; }
+  finally { $('#pgo').textContent = 'Continue'; $('#pgo').disabled = $('#pcode').value.replace(/[^A-Z0-9]/gi,'').length !== 8; } });
+async function boot(){
+  if (!CD.hasToken()) return showPair();
+  await load(true); if (!ME) return;
+  checkPush().then(() => render()); if (!document.hidden) startPolling();
+}
+boot();
+</script>
+</body>
+</html>
