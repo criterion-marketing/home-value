@@ -105,8 +105,10 @@
   <h1>3 Signs It&#x27;s Time to Sell</h1>
 </header>
 <main>
-  <div class="step">Step 1 · Copy the caption</div>
+  <div class="step">Step 1 · Pick where you're posting</div>
+  <p class="hint" style="text-align:left;margin-top:0">Each app gets its own caption. Copy the one that matches where you're posting.</p>
   <div class="card">
+    <p class="num">Instagram</p>
     <div class="caption" id="caption">3 signs your house is telling you it&#x27;s time to sell.
 
 1. Your space doesn&#x27;t fit your life anymore. Too big, too small, or just not right.
@@ -122,8 +124,48 @@ pdurante@criterion-re.com
 Criterion-RealEstate.com
 
 #BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #ThinkingOfSelling #SellYourHome</div>
-    <button id="copyBtn" type="button">📋&nbsp; Copy Caption</button>
-    <p class="hint">Then open Instagram or Facebook, tap where you type the caption, and choose <b>Paste</b>.</p>
+    <button id="copyBtn0" type="button" data-copy="0">📋&nbsp; Copy Instagram Caption</button>
+    <p class="hint">Then open Instagram, tap where you type the caption, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">Facebook</p>
+    <div class="caption" id="caption1">Is your house telling you it&#x27;s time to sell? Here are 3 signs to watch for:
+
+1. Your space doesn&#x27;t fit your life anymore. Too big, too small, or just not right.
+2. The repair list keeps getting longer than your free weekends.
+3. A new chapter is calling, like a new job or a new stage of life. And the equity you&#x27;ve built may help power your next move.
+
+Sound familiar? Better call Paul! Send me a message or give me a call, and let&#x27;s map out your next move together.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+#BetterCallPaul #CriterionRealEstate</div>
+    <button id="copyBtn1" type="button" data-copy="1">📋&nbsp; Copy Facebook Caption</button>
+    <p class="hint">Then open Facebook, start a post, add the pictures, tap where you type, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">LinkedIn</p>
+    <div class="caption" id="caption2">Deciding when to sell a home is a big decision. In my conversations with homeowners, three signs come up again and again:
+
+1. Your space no longer fits your life. It may be too big, too small, or simply not right anymore.
+2. The repair list keeps growing faster than your free weekends.
+3. A new chapter is calling, such as a new job or a new stage of life. The equity you&#x27;ve built may help power your next move.
+
+If any of these sound familiar, I&#x27;d be glad to talk through your options and help you map out a plan.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+#BetterCallPaul #RealEstate #HomeSelling #CriterionRealEstate</div>
+    <button id="copyBtn2" type="button" data-copy="2">📋&nbsp; Copy LinkedIn Caption</button>
+    <p class="hint">Then open LinkedIn, start a post, add the PDF as a <b>document</b> (or add the pictures), and <b>Paste</b> this as the text.</p>
   </div>
 
   <div class="step">Step 2 · Save the pictures</div>
@@ -134,13 +176,19 @@ Criterion-RealEstate.com
   <div class="card imgwrap"><p class="num">Picture 4 of 5</p><img src="3-Signs-It-s-Time-to-Sell-4.png" alt="3 Signs It&#x27;s Time to Sell picture 4" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="3">💾&nbsp; Save Picture 4</button></div>
   <div class="card imgwrap"><p class="num">Picture 5 of 5</p><img src="3-Signs-It-s-Time-to-Sell-5.png" alt="3 Signs It&#x27;s Time to Sell picture 5" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="4">💾&nbsp; Save Picture 5</button></div>
   <p class="hint" id="pressHint">Tip: you can also press and hold a picture and choose <b>Save to Photos</b>.</p>
+  <div class="step">For LinkedIn · Download the PDF</div>
+  <div class="card">
+    <a class="btn" href="3-Signs-Its-Time-to-Sell-LinkedIn.pdf" download="3-Signs-Its-Time-to-Sell-LinkedIn.pdf">📄&nbsp; Download LinkedIn PDF</a>
+    <p class="hint">On LinkedIn, start a post, tap <b>+</b> and choose <b>Add a document</b>, upload this PDF, then paste the LinkedIn caption. It shows up as a swipeable slideshow.</p>
+  </div>
+
 </main>
 <footer>Prepared for you by the Criterion team</footer>
 <div id="toast" role="status" aria-live="polite"></div>
 <textarea id="fallbackTA" readonly aria-hidden="true" tabindex="-1" style="position:fixed;top:0;left:-9999px;opacity:0;font-size:16px"></textarea>
 <script>
 (function(){
-  var CAPTION = "3 signs your house is telling you it's time to sell.\n\n1. Your space doesn't fit your life anymore. Too big, too small, or just not right.\n2. The repair list keeps getting longer than your free weekends.\n3. A new chapter is calling, like a new job or a new stage of life. And the equity you've built may help power your next move.\n\nSound familiar? Better call Paul! Let's talk through your options and map out your next move together.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #ThinkingOfSelling #SellYourHome";
+  var CAPTIONS = [{"label": "Instagram Caption", "text": "3 signs your house is telling you it's time to sell.\n\n1. Your space doesn't fit your life anymore. Too big, too small, or just not right.\n2. The repair list keeps getting longer than your free weekends.\n3. A new chapter is calling, like a new job or a new stage of life. And the equity you've built may help power your next move.\n\nSound familiar? Better call Paul! Let's talk through your options and map out your next move together.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #ThinkingOfSelling #SellYourHome", "p": "Instagram"}, {"label": "Facebook Caption", "text": "Is your house telling you it's time to sell? Here are 3 signs to watch for:\n\n1. Your space doesn't fit your life anymore. Too big, too small, or just not right.\n2. The repair list keeps getting longer than your free weekends.\n3. A new chapter is calling, like a new job or a new stage of life. And the equity you've built may help power your next move.\n\nSound familiar? Better call Paul! Send me a message or give me a call, and let's map out your next move together.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #CriterionRealEstate", "p": "Facebook"}, {"label": "LinkedIn Caption", "text": "Deciding when to sell a home is a big decision. In my conversations with homeowners, three signs come up again and again:\n\n1. Your space no longer fits your life. It may be too big, too small, or simply not right anymore.\n2. The repair list keeps growing faster than your free weekends.\n3. A new chapter is calling, such as a new job or a new stage of life. The equity you've built may help power your next move.\n\nIf any of these sound familiar, I'd be glad to talk through your options and help you map out a plan.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #HomeSelling #CriterionRealEstate", "p": "LinkedIn"}];
   var IMAGES = [{"src": "3-Signs-It-s-Time-to-Sell-1.png", "name": "3-Signs-It-s-Time-to-Sell-1.png", "type": "image/png"}, {"src": "3-Signs-It-s-Time-to-Sell-2.png", "name": "3-Signs-It-s-Time-to-Sell-2.png", "type": "image/png"}, {"src": "3-Signs-It-s-Time-to-Sell-3.png", "name": "3-Signs-It-s-Time-to-Sell-3.png", "type": "image/png"}, {"src": "3-Signs-It-s-Time-to-Sell-4.png", "name": "3-Signs-It-s-Time-to-Sell-4.png", "type": "image/png"}, {"src": "3-Signs-It-s-Time-to-Sell-5.png", "name": "3-Signs-It-s-Time-to-Sell-5.png", "type": "image/png"}];
   var ua = navigator.userAgent || "";
   var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -159,15 +207,17 @@ Criterion-RealEstate.com
     if (window.getSelection) { try { window.getSelection().removeAllRanges(); } catch(e){} }
     return ok;
   }
-  function selectCaption(){ var r = document.createRange(); r.selectNodeContents(document.getElementById("caption"));
+  function selectCaption(id){ var r = document.createRange(); r.selectNodeContents(document.getElementById(id || "caption"));
     var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
-  var copyBtn = document.getElementById("copyBtn");
-  copyBtn.addEventListener("click", function(){
-    function ok(){ flash(copyBtn, "✅&nbsp; Copied!"); toast("Caption copied! Now paste it into your post."); }
-    function fail(){ selectCaption(); toast("Caption is selected — tap Copy on the menu."); }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(CAPTION).then(ok, function(){ legacyCopy(CAPTION) ? ok() : fail(); });
-    } else { legacyCopy(CAPTION) ? ok() : fail(); }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function(btn){
+    var k = parseInt(btn.getAttribute("data-copy"), 10), text = CAPTIONS[k].text, cid = "caption" + (k ? k : "");
+    btn.addEventListener("click", function(){
+      function ok(){ flash(btn, "✅&nbsp; Copied!"); toast(CAPTIONS[k].label + " copied! Now paste it into your post."); }
+      function fail(){ selectCaption(cid); toast("Caption is selected — tap Copy on the menu."); }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(ok, function(){ legacyCopy(text) ? ok() : fail(); });
+      } else { legacyCopy(text) ? ok() : fail(); }
+    });
   });
 
   // ---------- Save images ----------
