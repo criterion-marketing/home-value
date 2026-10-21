@@ -105,8 +105,10 @@
   <h1>Myth vs. Fact</h1>
 </header>
 <main>
-  <div class="step">Step 1 · Copy the caption</div>
+  <div class="step">Step 1 · Pick where you're posting</div>
+  <p class="hint" style="text-align:left;margin-top:0">Each app gets its own caption. Copy the one that matches where you're posting.</p>
   <div class="card">
+    <p class="num">Instagram</p>
     <div class="caption" id="caption">Myth or fact? Better call Paul!
 
 Myth: You need 20% down to buy a home.
@@ -127,8 +129,58 @@ pdurante@criterion-re.com
 Criterion-RealEstate.com
 
 #BetterCallPaul #RealEstate #CriterionRealEstate #RealEstateMyths #HomeBuying #HomeSelling</div>
-    <button id="copyBtn" type="button">📋&nbsp; Copy Caption</button>
-    <p class="hint">Then open Instagram or Facebook, tap where you type the caption, and choose <b>Paste</b>.</p>
+    <button id="copyBtn0" type="button" data-copy="0">📋&nbsp; Copy Instagram Caption</button>
+    <p class="hint">Then open Instagram, tap where you type the caption, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">Facebook</p>
+    <div class="caption" id="caption1">Myth or fact? Better call Paul! Let&#x27;s clear up 3 common real estate myths:
+
+Myth: You need 20% down to buy a home.
+Fact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.
+
+Myth: The highest offer always wins.
+Fact: Not necessarily. Price matters, but so do terms and timing.
+
+Myth: Online home value estimates are exact.
+Fact: They&#x27;re a starting point only. A local agent can give you a clearer picture.
+
+Heard a real estate myth? Drop it in the comments or send it my way, and I&#x27;ll get you a straight answer.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+#BetterCallPaul #RealEstateMyths</div>
+    <button id="copyBtn1" type="button" data-copy="1">📋&nbsp; Copy Facebook Caption</button>
+    <p class="hint">Then open Facebook, start a post, add the pictures, tap where you type, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">LinkedIn</p>
+    <div class="caption" id="caption2">Three common real estate myths, and the facts behind them:
+
+Myth: You need 20% down to buy a home.
+Fact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.
+
+Myth: The highest offer always wins.
+Fact: Not necessarily. Price matters, but so do terms and timing.
+
+Myth: Online home value estimates are exact.
+Fact: They&#x27;re a starting point only. A local agent can give you a clearer picture.
+
+Have you heard a real estate myth you&#x27;d like answered? Share it in the comments or send me a message, and I&#x27;ll give you a straight answer before you buy or sell.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+#BetterCallPaul #RealEstate #RealEstateMyths #HomeBuying #CriterionRealEstate</div>
+    <button id="copyBtn2" type="button" data-copy="2">📋&nbsp; Copy LinkedIn Caption</button>
+    <p class="hint">Then open LinkedIn, start a post, add the PDF as a <b>document</b> (or add the pictures), and <b>Paste</b> this as the text.</p>
   </div>
 
   <div class="step">Step 2 · Save the pictures</div>
@@ -139,13 +191,19 @@ Criterion-RealEstate.com
   <div class="card imgwrap"><p class="num">Picture 4 of 5</p><img src="Myth-vs-Fact-4.png" alt="Myth vs. Fact picture 4" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="3">💾&nbsp; Save Picture 4</button></div>
   <div class="card imgwrap"><p class="num">Picture 5 of 5</p><img src="Myth-vs-Fact-5.png" alt="Myth vs. Fact picture 5" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="4">💾&nbsp; Save Picture 5</button></div>
   <p class="hint" id="pressHint">Tip: you can also press and hold a picture and choose <b>Save to Photos</b>.</p>
+  <div class="step">For LinkedIn · Download the PDF</div>
+  <div class="card">
+    <a class="btn" href="Myth-vs-Fact-LinkedIn.pdf" download="Myth-vs-Fact-LinkedIn.pdf">📄&nbsp; Download LinkedIn PDF</a>
+    <p class="hint">On LinkedIn, start a post, tap <b>+</b> and choose <b>Add a document</b>, upload this PDF, then paste the LinkedIn caption. It shows up as a swipeable slideshow.</p>
+  </div>
+
 </main>
 <footer>Prepared for you by the Criterion team</footer>
 <div id="toast" role="status" aria-live="polite"></div>
 <textarea id="fallbackTA" readonly aria-hidden="true" tabindex="-1" style="position:fixed;top:0;left:-9999px;opacity:0;font-size:16px"></textarea>
 <script>
 (function(){
-  var CAPTION = "Myth or fact? Better call Paul!\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nHeard a real estate myth? Send it my way, and let's get you a straight answer before you buy or sell.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #RealEstateMyths #HomeBuying #HomeSelling";
+  var CAPTIONS = [{"label": "Instagram Caption", "text": "Myth or fact? Better call Paul!\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nHeard a real estate myth? Send it my way, and let's get you a straight answer before you buy or sell.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #RealEstateMyths #HomeBuying #HomeSelling", "p": "Instagram"}, {"label": "Facebook Caption", "text": "Myth or fact? Better call Paul! Let's clear up 3 common real estate myths:\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nHeard a real estate myth? Drop it in the comments or send it my way, and I'll get you a straight answer.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstateMyths", "p": "Facebook"}, {"label": "LinkedIn Caption", "text": "Three common real estate myths, and the facts behind them:\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nHave you heard a real estate myth you'd like answered? Share it in the comments or send me a message, and I'll give you a straight answer before you buy or sell.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #RealEstateMyths #HomeBuying #CriterionRealEstate", "p": "LinkedIn"}];
   var IMAGES = [{"src": "Myth-vs-Fact-1.png", "name": "Myth-vs-Fact-1.png", "type": "image/png"}, {"src": "Myth-vs-Fact-2.png", "name": "Myth-vs-Fact-2.png", "type": "image/png"}, {"src": "Myth-vs-Fact-3.png", "name": "Myth-vs-Fact-3.png", "type": "image/png"}, {"src": "Myth-vs-Fact-4.png", "name": "Myth-vs-Fact-4.png", "type": "image/png"}, {"src": "Myth-vs-Fact-5.png", "name": "Myth-vs-Fact-5.png", "type": "image/png"}];
   var ua = navigator.userAgent || "";
   var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -164,15 +222,17 @@ Criterion-RealEstate.com
     if (window.getSelection) { try { window.getSelection().removeAllRanges(); } catch(e){} }
     return ok;
   }
-  function selectCaption(){ var r = document.createRange(); r.selectNodeContents(document.getElementById("caption"));
+  function selectCaption(id){ var r = document.createRange(); r.selectNodeContents(document.getElementById(id || "caption"));
     var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
-  var copyBtn = document.getElementById("copyBtn");
-  copyBtn.addEventListener("click", function(){
-    function ok(){ flash(copyBtn, "✅&nbsp; Copied!"); toast("Caption copied! Now paste it into your post."); }
-    function fail(){ selectCaption(); toast("Caption is selected — tap Copy on the menu."); }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(CAPTION).then(ok, function(){ legacyCopy(CAPTION) ? ok() : fail(); });
-    } else { legacyCopy(CAPTION) ? ok() : fail(); }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function(btn){
+    var k = parseInt(btn.getAttribute("data-copy"), 10), text = CAPTIONS[k].text, cid = "caption" + (k ? k : "");
+    btn.addEventListener("click", function(){
+      function ok(){ flash(btn, "✅&nbsp; Copied!"); toast(CAPTIONS[k].label + " copied! Now paste it into your post."); }
+      function fail(){ selectCaption(cid); toast("Caption is selected — tap Copy on the menu."); }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(ok, function(){ legacyCopy(text) ? ok() : fail(); });
+      } else { legacyCopy(text) ? ok() : fail(); }
+    });
   });
 
   // ---------- Save images ----------

@@ -105,8 +105,10 @@
   <h1>Ready to Stop Renting</h1>
 </header>
 <main>
-  <div class="step">Step 1 · Copy the caption</div>
+  <div class="step">Step 1 · Pick where you're posting</div>
+  <p class="hint" style="text-align:left;margin-top:0">Each app gets its own caption. Copy the one that matches where you're posting.</p>
   <div class="card">
+    <p class="num">Instagram</p>
     <div class="caption" id="caption">Paying your landlord&#x27;s mortgage? Let&#x27;s make it yours.
 
 You might be ready to stop renting if:
@@ -126,21 +128,69 @@ Criterion-RealEstate.com
 Talk to a lender to see what you may qualify for.
 
 #BetterCallPaul #RealEstate #CriterionRealEstate #FirstTimeHomeBuyer #HomeBuying #StopRenting</div>
-    <button id="copyBtn" type="button">📋&nbsp; Copy Caption</button>
-    <p class="hint">Then open Instagram or Facebook, tap where you type the caption, and choose <b>Paste</b>.</p>
+    <button id="copyBtn0" type="button" data-copy="0">📋&nbsp; Copy Instagram Caption</button>
+    <p class="hint">Then open Instagram, tap where you type the caption, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">Facebook</p>
+    <div class="caption" id="caption1">Paying your landlord&#x27;s mortgage? Let&#x27;s make it yours! 🏡
+
+You might be ready to stop renting if:
+- You want walls you can paint
+- You&#x27;re ready to put down roots
+- You&#x27;d like to build equity of your own
+- Your lease renewal is coming up
+
+Ready to take the first step? Better call Paul! Let&#x27;s talk about what your path to owning could look like.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+Talk to a lender to see what you may qualify for.
+
+#BetterCallPaul #FirstTimeHomeBuyer</div>
+    <button id="copyBtn1" type="button" data-copy="1">📋&nbsp; Copy Facebook Caption</button>
+    <p class="hint">Then open Facebook, start a post, add the pictures, tap where you type, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">LinkedIn</p>
+    <div class="caption" id="caption2">Is it time to move from renting to owning? A few signs you may be ready:
+
+- You want a space you can truly make your own
+- You&#x27;re ready to put down roots
+- You&#x27;d like to build equity of your own
+- Your lease renewal is coming up
+
+If you or someone you know is thinking about that first step, I&#x27;d be happy to talk through what the path to ownership could look like.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+Talk to a lender to see what you may qualify for.
+
+#BetterCallPaul #RealEstate #FirstTimeHomeBuyer #CriterionRealEstate</div>
+    <button id="copyBtn2" type="button" data-copy="2">📋&nbsp; Copy LinkedIn Caption</button>
+    <p class="hint">Then open LinkedIn, start a post, add the PDF as a <b>document</b> (or add the pictures), and <b>Paste</b> this as the text.</p>
   </div>
 
   <div class="step">Step 2 · Save the picture</div>
   
   <div class="card imgwrap"><img src="Ready-to-Stop-Renting-1.png" alt="Ready to Stop Renting picture 1" loading="eager"><div style="height:12px"></div><button type="button" data-save="0">💾&nbsp; Save Image</button></div>
   <p class="hint" id="pressHint">Tip: you can also press and hold a picture and choose <b>Save to Photos</b>.</p>
+
 </main>
 <footer>Prepared for you by the Criterion team</footer>
 <div id="toast" role="status" aria-live="polite"></div>
 <textarea id="fallbackTA" readonly aria-hidden="true" tabindex="-1" style="position:fixed;top:0;left:-9999px;opacity:0;font-size:16px"></textarea>
 <script>
 (function(){
-  var CAPTION = "Paying your landlord's mortgage? Let's make it yours.\n\nYou might be ready to stop renting if:\n- You want walls you can paint\n- You're ready to put down roots\n- You'd like to build equity of your own\n- Your lease renewal is coming up\n\nReady to take the first step? Better call Paul! Let's talk about what your path to owning could look like.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\nTalk to a lender to see what you may qualify for.\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #FirstTimeHomeBuyer #HomeBuying #StopRenting";
+  var CAPTIONS = [{"label": "Instagram Caption", "text": "Paying your landlord's mortgage? Let's make it yours.\n\nYou might be ready to stop renting if:\n- You want walls you can paint\n- You're ready to put down roots\n- You'd like to build equity of your own\n- Your lease renewal is coming up\n\nReady to take the first step? Better call Paul! Let's talk about what your path to owning could look like.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\nTalk to a lender to see what you may qualify for.\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #FirstTimeHomeBuyer #HomeBuying #StopRenting", "p": "Instagram"}, {"label": "Facebook Caption", "text": "Paying your landlord's mortgage? Let's make it yours! 🏡\n\nYou might be ready to stop renting if:\n- You want walls you can paint\n- You're ready to put down roots\n- You'd like to build equity of your own\n- Your lease renewal is coming up\n\nReady to take the first step? Better call Paul! Let's talk about what your path to owning could look like.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\nTalk to a lender to see what you may qualify for.\n\n#BetterCallPaul #FirstTimeHomeBuyer", "p": "Facebook"}, {"label": "LinkedIn Caption", "text": "Is it time to move from renting to owning? A few signs you may be ready:\n\n- You want a space you can truly make your own\n- You're ready to put down roots\n- You'd like to build equity of your own\n- Your lease renewal is coming up\n\nIf you or someone you know is thinking about that first step, I'd be happy to talk through what the path to ownership could look like.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\nTalk to a lender to see what you may qualify for.\n\n#BetterCallPaul #RealEstate #FirstTimeHomeBuyer #CriterionRealEstate", "p": "LinkedIn"}];
   var IMAGES = [{"src": "Ready-to-Stop-Renting-1.png", "name": "Ready-to-Stop-Renting-1.png", "type": "image/png"}];
   var ua = navigator.userAgent || "";
   var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -159,15 +209,17 @@ Talk to a lender to see what you may qualify for.
     if (window.getSelection) { try { window.getSelection().removeAllRanges(); } catch(e){} }
     return ok;
   }
-  function selectCaption(){ var r = document.createRange(); r.selectNodeContents(document.getElementById("caption"));
+  function selectCaption(id){ var r = document.createRange(); r.selectNodeContents(document.getElementById(id || "caption"));
     var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
-  var copyBtn = document.getElementById("copyBtn");
-  copyBtn.addEventListener("click", function(){
-    function ok(){ flash(copyBtn, "✅&nbsp; Copied!"); toast("Caption copied! Now paste it into your post."); }
-    function fail(){ selectCaption(); toast("Caption is selected — tap Copy on the menu."); }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(CAPTION).then(ok, function(){ legacyCopy(CAPTION) ? ok() : fail(); });
-    } else { legacyCopy(CAPTION) ? ok() : fail(); }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function(btn){
+    var k = parseInt(btn.getAttribute("data-copy"), 10), text = CAPTIONS[k].text, cid = "caption" + (k ? k : "");
+    btn.addEventListener("click", function(){
+      function ok(){ flash(btn, "✅&nbsp; Copied!"); toast(CAPTIONS[k].label + " copied! Now paste it into your post."); }
+      function fail(){ selectCaption(cid); toast("Caption is selected — tap Copy on the menu."); }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(ok, function(){ legacyCopy(text) ? ok() : fail(); });
+      } else { legacyCopy(text) ? ok() : fail(); }
+    });
   });
 
   // ---------- Save images ----------

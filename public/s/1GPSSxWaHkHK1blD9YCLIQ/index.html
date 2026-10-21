@@ -105,8 +105,10 @@
   <h1>Seller Checklist</h1>
 </header>
 <main>
-  <div class="step">Step 1 · Copy the caption</div>
+  <div class="step">Step 1 · Pick where you're posting</div>
+  <p class="hint" style="text-align:left;margin-top:0">Each app gets its own caption. Copy the one that matches where you're posting.</p>
   <div class="card">
+    <p class="num">Instagram</p>
     <div class="caption" id="caption">Thinking of selling? Do these 5 things first (then call Paul!).
 
 1. Declutter and depersonalize.
@@ -124,8 +126,52 @@ pdurante@criterion-re.com
 Criterion-RealEstate.com
 
 #BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #SellerTips #ThinkingOfSelling</div>
-    <button id="copyBtn" type="button">📋&nbsp; Copy Caption</button>
-    <p class="hint">Then open Instagram or Facebook, tap where you type the caption, and choose <b>Paste</b>.</p>
+    <button id="copyBtn0" type="button" data-copy="0">📋&nbsp; Copy Instagram Caption</button>
+    <p class="hint">Then open Instagram, tap where you type the caption, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">Facebook</p>
+    <div class="caption" id="caption1">Thinking of selling? Do these 5 things first (then call Paul!).
+
+1. Declutter and depersonalize.
+2. Tackle the small repairs.
+3. Deep clean, top to bottom.
+4. Boost your curb appeal.
+5. Gather your paperwork.
+
+Save or share this post for later. When you&#x27;re ready, better call Paul! Let&#x27;s put together a plan to get your home ready for the market.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+#BetterCallPaul #SellerTips</div>
+    <button id="copyBtn1" type="button" data-copy="1">📋&nbsp; Copy Facebook Caption</button>
+    <p class="hint">Then open Facebook, start a post, add the pictures, tap where you type, and choose <b>Paste</b>.</p>
+  </div>
+  <div class="card">
+    <p class="num">LinkedIn</p>
+    <div class="caption" id="caption2">Preparing to sell a home? These five steps can help it make a strong first impression:
+
+1. Declutter and depersonalize.
+2. Tackle the small repairs.
+3. Deep clean, top to bottom.
+4. Boost your curb appeal.
+5. Gather your paperwork.
+
+When you&#x27;re ready to sell, I&#x27;d be glad to help you put together a plan to get your home ready for the market.
+
+Paul Durante | Real Estate Salesperson
+Criterion Real Estate
+203.885.2443
+pdurante@criterion-re.com
+Criterion-RealEstate.com
+
+#BetterCallPaul #RealEstate #HomeSelling #SellerTips #CriterionRealEstate</div>
+    <button id="copyBtn2" type="button" data-copy="2">📋&nbsp; Copy LinkedIn Caption</button>
+    <p class="hint">Then open LinkedIn, start a post, add the PDF as a <b>document</b> (or add the pictures), and <b>Paste</b> this as the text.</p>
   </div>
 
   <div class="step">Step 2 · Save the pictures</div>
@@ -135,13 +181,19 @@ Criterion-RealEstate.com
   <div class="card imgwrap"><p class="num">Picture 3 of 4</p><img src="Seller-Checklist-3.png" alt="Seller Checklist picture 3" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="2">💾&nbsp; Save Picture 3</button></div>
   <div class="card imgwrap"><p class="num">Picture 4 of 4</p><img src="Seller-Checklist-4.png" alt="Seller Checklist picture 4" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="3">💾&nbsp; Save Picture 4</button></div>
   <p class="hint" id="pressHint">Tip: you can also press and hold a picture and choose <b>Save to Photos</b>.</p>
+  <div class="step">For LinkedIn · Download the PDF</div>
+  <div class="card">
+    <a class="btn" href="Seller-Checklist-LinkedIn.pdf" download="Seller-Checklist-LinkedIn.pdf">📄&nbsp; Download LinkedIn PDF</a>
+    <p class="hint">On LinkedIn, start a post, tap <b>+</b> and choose <b>Add a document</b>, upload this PDF, then paste the LinkedIn caption. It shows up as a swipeable slideshow.</p>
+  </div>
+
 </main>
 <footer>Prepared for you by the Criterion team</footer>
 <div id="toast" role="status" aria-live="polite"></div>
 <textarea id="fallbackTA" readonly aria-hidden="true" tabindex="-1" style="position:fixed;top:0;left:-9999px;opacity:0;font-size:16px"></textarea>
 <script>
 (function(){
-  var CAPTION = "Thinking of selling? Do these 5 things first (then call Paul!).\n\n1. Declutter and depersonalize.\n2. Tackle the small repairs.\n3. Deep clean, top to bottom.\n4. Boost your curb appeal.\n5. Gather your paperwork.\n\nSave this post for later. When you're ready, better call Paul! Let's put together a plan to get your home ready for the market.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #SellerTips #ThinkingOfSelling";
+  var CAPTIONS = [{"label": "Instagram Caption", "text": "Thinking of selling? Do these 5 things first (then call Paul!).\n\n1. Declutter and depersonalize.\n2. Tackle the small repairs.\n3. Deep clean, top to bottom.\n4. Boost your curb appeal.\n5. Gather your paperwork.\n\nSave this post for later. When you're ready, better call Paul! Let's put together a plan to get your home ready for the market.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #SellerTips #ThinkingOfSelling", "p": "Instagram"}, {"label": "Facebook Caption", "text": "Thinking of selling? Do these 5 things first (then call Paul!).\n\n1. Declutter and depersonalize.\n2. Tackle the small repairs.\n3. Deep clean, top to bottom.\n4. Boost your curb appeal.\n5. Gather your paperwork.\n\nSave or share this post for later. When you're ready, better call Paul! Let's put together a plan to get your home ready for the market.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #SellerTips", "p": "Facebook"}, {"label": "LinkedIn Caption", "text": "Preparing to sell a home? These five steps can help it make a strong first impression:\n\n1. Declutter and depersonalize.\n2. Tackle the small repairs.\n3. Deep clean, top to bottom.\n4. Boost your curb appeal.\n5. Gather your paperwork.\n\nWhen you're ready to sell, I'd be glad to help you put together a plan to get your home ready for the market.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #RealEstate #HomeSelling #SellerTips #CriterionRealEstate", "p": "LinkedIn"}];
   var IMAGES = [{"src": "Seller-Checklist-1.png", "name": "Seller-Checklist-1.png", "type": "image/png"}, {"src": "Seller-Checklist-2.png", "name": "Seller-Checklist-2.png", "type": "image/png"}, {"src": "Seller-Checklist-3.png", "name": "Seller-Checklist-3.png", "type": "image/png"}, {"src": "Seller-Checklist-4.png", "name": "Seller-Checklist-4.png", "type": "image/png"}];
   var ua = navigator.userAgent || "";
   var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -160,15 +212,17 @@ Criterion-RealEstate.com
     if (window.getSelection) { try { window.getSelection().removeAllRanges(); } catch(e){} }
     return ok;
   }
-  function selectCaption(){ var r = document.createRange(); r.selectNodeContents(document.getElementById("caption"));
+  function selectCaption(id){ var r = document.createRange(); r.selectNodeContents(document.getElementById(id || "caption"));
     var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
-  var copyBtn = document.getElementById("copyBtn");
-  copyBtn.addEventListener("click", function(){
-    function ok(){ flash(copyBtn, "✅&nbsp; Copied!"); toast("Caption copied! Now paste it into your post."); }
-    function fail(){ selectCaption(); toast("Caption is selected — tap Copy on the menu."); }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(CAPTION).then(ok, function(){ legacyCopy(CAPTION) ? ok() : fail(); });
-    } else { legacyCopy(CAPTION) ? ok() : fail(); }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function(btn){
+    var k = parseInt(btn.getAttribute("data-copy"), 10), text = CAPTIONS[k].text, cid = "caption" + (k ? k : "");
+    btn.addEventListener("click", function(){
+      function ok(){ flash(btn, "✅&nbsp; Copied!"); toast(CAPTIONS[k].label + " copied! Now paste it into your post."); }
+      function fail(){ selectCaption(cid); toast("Caption is selected — tap Copy on the menu."); }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(ok, function(){ legacyCopy(text) ? ok() : fail(); });
+      } else { legacyCopy(text) ? ok() : fail(); }
+    });
   });
 
   // ---------- Save images ----------
