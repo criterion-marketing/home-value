@@ -40,8 +40,35 @@
     body{background:#0F0B1A;color:#F4F1FF}.card{background:#1C1C1F;box-shadow:none}
     .caption{background:#151219;border-color:#3B2A66;color:#F4F1FF}.hint,.num,footer{color:#BBB}
     button.secondary,button.share.secondary{background:#1C1C1F;color:var(--pl);border-color:var(--pl)}.step{color:var(--pl)}
+    a.btn.post.secondary{background:#1C1C1F;color:var(--pl);border-color:var(--pl)}
   }
+  /* Device-specific buttons (Oct 24 2026): phones/tablets get the Share sheet, computers get Post on Facebook / LinkedIn.
+     <html> gets .is-mobile or .is-desktop from the detection script below. With no JS, the phone layout shows. */
+  .desk-only{display:none!important}
+  html.is-desktop .mob-only{display:none!important}
+  html.is-desktop .desk-only{display:flex!important}
+  html.is-desktop p.desk-only{display:block!important}
+  a.btn.post{min-height:68px}
+  a.btn.post svg{width:28px;height:28px;flex:0 0 auto}
+  a.btn.post + a.btn.post{margin-top:12px}
+  a.btn.post.secondary{background:#fff;color:var(--pd);border:3px solid var(--p);box-shadow:none;min-height:60px;font-size:20px;margin-top:12px}
+  .poststatus{font-weight:600;color:var(--ok)!important}
 </style>
+<script id="device-detect">
+(function(){
+  // Phone/tablet vs computer. Mobile if ANY signal says so: UA-CH mobile flag, a mobile/tablet UA,
+  // iPadOS (reports as a Mac but has multi-touch), or a touch-only screen (pointer: coarse + hover: none).
+  // Touchscreen laptops keep a fine pointer with hover, so they count as computers. ?view=desktop|mobile overrides (testing).
+  var n = navigator, ua = n.userAgent || "", m = false;
+  try { if (n.userAgentData && n.userAgentData.mobile === true) m = true; } catch(e){}
+  if (/iPhone|iPad|iPod|Android|Mobi|Tablet|Silk|Kindle|KFAPWI|PlayBook|BlackBerry|BB10|IEMobile|Opera Mini|webOS/i.test(ua)) m = true;
+  if (/Mac/.test(n.platform || ua) && n.maxTouchPoints > 1) m = true;
+  try { var mq = window.matchMedia; if (mq && mq("(pointer: coarse)").matches && mq("(hover: none)").matches) m = true; } catch(e){}
+  try { var v = new URLSearchParams(location.search).get("view"); if (v === "desktop") m = false; if (v === "mobile") m = true; } catch(e){}
+  window.CRIT_IS_MOBILE = m;
+  document.documentElement.classList.add(m ? "is-mobile" : "is-desktop");
+})();
+</script>
 <style id="pv-style">
   .pv{padding:14px 0 12px;overflow:hidden}
   .pv button{display:inline-flex;align-items:center;justify-content:center;gap:0;width:auto;min-height:0;margin:0;padding:0;border:0;border-radius:0;
@@ -184,8 +211,12 @@
 
   <div class="step">Quick share</div>
   <div class="card">
-    <button id="shareBtn" type="button" class="share loading" data-share="0" disabled data-ready="📤&nbsp; Share Post">⏳&nbsp; Loading pictures…</button>
-    <p class="hint">Copies the caption and opens your share menu with the picture. Pick Instagram, Facebook or LinkedIn, then paste the caption.</p>
+    <button id="shareBtn" type="button" class="share loading mob-only" data-share="0" disabled data-ready="📤&nbsp; Share Post">⏳&nbsp; Loading pictures…</button>
+    <p class="hint mob-only">Copies the caption and opens your share menu with the picture. Pick Instagram, Facebook or LinkedIn, then paste the caption.</p>
+    <a class="btn post desk-only" id="quickPostFB0" data-post="fb" data-cap="0" data-status="postStatus" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg>Post on Facebook</a>
+    <a class="btn post desk-only" id="quickPostLI0" data-post="li" data-cap="0" data-status="postStatus" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg>Post on LinkedIn</a>
+    <p class="hint desk-only">Each button copies the caption, downloads the picture, and opens the site in a new tab. Start a post, paste the caption, and attach the picture.</p>
+    <p class="hint desk-only poststatus" id="postStatus" role="status" aria-live="polite"></p>
   </div>
   <p class="hint" style="margin:18px 4px 0">Or do it step by step:</p>
 
@@ -209,7 +240,7 @@ Criterion-RealEstate.com
   <div class="step">Step 2 · Save the picture</div>
   
   <div class="card imgwrap"><img src="Better-Call-Paul-QR-1.png" alt="Better Call Paul + QR picture 1" loading="eager"><div style="height:12px"></div><button type="button" data-save="0">💾&nbsp; Save Image</button></div>
-  <p class="hint" id="pressHint">Tip: you can also press and hold a picture and choose <b>Save to Photos</b>.</p>
+  <p class="hint mob-only" id="pressHint">Tip: you can also press and hold a picture and choose <b>Save to Photos</b>.</p>
 
 </main>
 <footer>Prepared for you by the Criterion team</footer>
@@ -220,9 +251,10 @@ Criterion-RealEstate.com
   var CAPTIONS = [{"label": "Caption", "text": "Thinking about buying or selling a home? Better call Paul!\n\nI'm passionate about connecting people with their dream homes. If you're wondering what your current home might be worth, scan the QR code to request your home value and I'll personally follow up with you. Can't scan? Visit tinyurl.com/CriterionPaulOnline\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #CriterionRealEstate #RealEstate #HomeValue #HomeSelling #HomeBuying"}];
   var IMAGES = [{"src": "Better-Call-Paul-QR-1.png", "name": "Better-Call-Paul-QR-1.png", "type": "image/png"}];
   var ua = navigator.userAgent || "";
-  var isMobile = /iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isMobile = (typeof window.CRIT_IS_MOBILE === "boolean") ? window.CRIT_IS_MOBILE
+    : (/iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
   var toastEl = document.getElementById("toast"), toastTimer;
-  function toast(msg){ toastEl.textContent = msg; toastEl.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 2600); }
+  function toast(msg, ms){ toastEl.textContent = msg; toastEl.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, ms || 2600); }
   function flash(btn, label){ var orig = btn.getAttribute("data-label") || btn.innerHTML; btn.setAttribute("data-label", orig);
     btn.innerHTML = label; btn.classList.add("done"); setTimeout(function(){ btn.innerHTML = orig; btn.classList.remove("done"); }, 3000); }
 
@@ -356,6 +388,36 @@ Criterion-RealEstate.com
   // If a picture can't load, they still turn on and use the download fallback.
   function enableShare(){ shareBtns.forEach(function(btn){ btn.disabled = false; btn.innerHTML = btn.getAttribute("data-ready"); btn.classList.remove("loading"); }); }
   Promise.all(IMAGES.map(function(_, i){ return load(i); })).then(enableShare, enableShare);
+
+  // ---------- Computer: Post on Facebook / Post on LinkedIn ----------
+  // Each button is a real <a target="_blank"> link, so the composer opens as a normal link click (popup blockers don't apply).
+  // The click handler runs first: it copies the caption synchronously (before the new tab takes focus),
+  // then downloads every picture. If the tab doesn't open, the copy and downloads still happen.
+  var COMPOSER = {
+    fb: function(){ return "https://www.facebook.com/"; },
+    li: function(t){ return "https://www.linkedin.com/feed/?shareActive=true&text=" + encodeURIComponent(t); }
+  };
+  var SITE = {fb: "Facebook", li: "LinkedIn"};
+  Array.prototype.forEach.call(document.querySelectorAll("[data-post]"), function(a){
+    var net = a.getAttribute("data-post"), k = parseInt(a.getAttribute("data-cap"), 10) || 0;
+    var text = CAPTIONS[k].text, n = IMAGES.length;
+    a.href = COMPOSER[net](text);
+    a.addEventListener("click", function(){
+      var copied = legacyCopy(text) ? Promise.resolve(true) : copyNow(text);   // 1) copy inside the click
+      IMAGES.forEach(function(_, i){ if (i === 0) download(0); else setTimeout(function(){ download(i); }, i * 500); }); // 2) download all
+      var pic = n > 1 ? n + " images" : "image", them = n > 1 ? "images" : "image";
+      var status = document.getElementById(a.getAttribute("data-status"));
+      copied.then(function(ok){
+        var msg = ok ? "Caption copied and " + pic + " downloaded. Paste the caption in the post and attach the " + them + "."
+                     : (n > 1 ? n + " images" : "Image") + " downloaded. The caption is selected above: copy it, then paste it in the post.";
+        if (!ok) selectCaption("caption" + (k ? k : ""));
+        toast(msg, 7000);
+        if (status) status.textContent = "✅ " + msg + " " + SITE[net] + " opened in a new tab.";
+        flash(a, ok ? "✅&nbsp; Copied &amp; downloaded" : "✅&nbsp; Downloaded");
+      });
+      // 3) default action: open the composer in a new tab (no preventDefault)
+    });
+  });
 })();
 </script>
 <script id="pv-script">
