@@ -57,9 +57,20 @@
   p.li-note{margin:12px 0 4px;padding:12px 14px;border-radius:12px;background:#EEF6FF;border:2px solid #0A66C2;color:#0B2E59;font-size:18px;line-height:1.4;text-align:left}
   p.li-note[hidden],html.is-desktop p.li-note[hidden]{display:none!important}
   p.li-note .li-link{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;word-break:break-all;user-select:all}
+  p.li-note .li-link.li-fc{font-family:inherit;font-size:17px;word-break:normal;overflow-wrap:anywhere;display:block;margin-top:6px}
   a.hub-top{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;max-width:640px;min-height:44px;padding:10px 16px;
     border-radius:999px;background:#fff;color:var(--pd);border:2px solid var(--p);font-weight:700;font-size:18px;text-decoration:none}
   a.hub-top:hover{background:#F3EEFF}
+
+  .fc-card{border:3px solid #0A66C2!important;background:#F3F8FE!important}
+  .fc-card .fc-label{margin:0 2px 10px;font-weight:800;font-size:19px;color:#0B2E59;text-align:left}
+  .fc-card .fc-text{white-space:pre-wrap;word-wrap:break-word;font-size:18px;line-height:1.5;background:#fff;border:2px solid #BFD7F2;border-radius:14px;
+    padding:14px;margin:0 0 12px;color:#0A0A0A;user-select:all;-webkit-user-select:all}
+  .fc-card button.fc-copy{background:#0A66C2;box-shadow:0 4px 0 #084B8F;color:#fff}
+  .fc-card button.fc-copy.done{background:#15803D;box-shadow:0 4px 0 #14532D}
+  .fc-card .fc-status{min-height:1.4em;margin:8px 2px 0;font-weight:700;color:#15803D;text-align:center}
+  @media (prefers-color-scheme:dark){.fc-card{background:#0E1B2B!important}.fc-card .fc-label{color:#CFE3FA}
+    .fc-card .fc-text{background:#151219;color:#F4F1FF;border-color:#2A4A70}}
 </style>
 <script id="device-detect">
 (function(){
@@ -217,8 +228,16 @@
     <a class="btn post desk-only" id="quickPostFB0" data-post="fb" data-cap="0" data-status="postStatus" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg>Post on Facebook</a>
     <a class="btn post desk-only" id="quickPostLI0" data-post="li" data-cap="0" data-status="postStatus" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg>Post on LinkedIn</a>
     <p class="desk-only li-note" id="liNotequickPostLI0" role="status" aria-live="polite" hidden></p>
-    <p class="hint desk-only">Each button copies the caption, downloads all 5 pictures in one ZIP file, and opens the site in a new tab (on Instagram, click <b>+ Create</b>). Start a post, paste the caption, and attach the pictures. On LinkedIn the caption is filled in for you without links, and the short link is copied so you can paste it as the first comment.</p>
+    <p class="hint desk-only">Each button copies the caption, downloads all 5 pictures in one ZIP file, and opens the site in a new tab (on Instagram, click <b>+ Create</b>). Start a post, paste the caption, and attach the pictures. On LinkedIn the caption is filled in for you without links, and the first comment (with the link) is copied so you can paste it right after you post.</p>
     <p class="hint desk-only poststatus" id="postStatus" role="status" aria-live="polite"></p>
+  </div>
+
+  <div class="step">First comment</div>
+  <div class="card fc-card" id="fcCard">
+    <p class="fc-label"><span aria-hidden="true">💬</span> Paste this as your first comment on LinkedIn.</p>
+    <div class="fc-text" id="fcText">Curious what your home is worth in today&#x27;s market? Get your free home value here: https://tinyurl.com/CriterionPaulOnline</div>
+    <button type="button" class="fc-copy" id="fcCopy" data-fc-copy="fcText" data-fc-status="fcStatus">📋&nbsp; Copy First Comment</button>
+    <p class="fc-status" id="fcStatus" role="status" aria-live="polite"></p>
   </div>
 
   <div class="step">Preview</div>
@@ -281,6 +300,7 @@ Criterion-RealEstate.com
   var CAPTIONS = [{"label": "Caption", "text": "Myth or fact? Better call Paul!\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nWant a clearer picture of your own home's value? Scan the QR code on the last slide, or visit tinyurl.com/CriterionPaulOnline, and I'll put one together for you.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #CriterionRealEstate #RealEstateMyths #HomeValue #HomeBuying #HomeSelling", "li_text": "Myth or fact? Better call Paul!\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nWant a clearer picture of your own home's value? Scan the QR code on the last slide, or visit the link in the first comment, and I'll put one together for you.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\n\n#BetterCallPaul #CriterionRealEstate #RealEstateMyths #HomeValue #HomeBuying #HomeSelling", "short_link": "https://tinyurl.com/CriterionPaulOnline"}];
   var IMAGES = [{"src": "Myth-vs-Fact-QR-1.png", "name": "Myth-vs-Fact-QR-1.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-2.png", "name": "Myth-vs-Fact-QR-2.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-3.png", "name": "Myth-vs-Fact-QR-3.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-4.png", "name": "Myth-vs-Fact-QR-4.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-5.png", "name": "Myth-vs-Fact-QR-5.png", "type": "image/png"}];
   var ZIP = {"src": "Myth-vs-Fact-QR-pictures.zip", "name": "Myth-vs-Fact-QR-pictures.zip"};   // multi-picture pages: one prebuilt ZIP of every picture (computers download this, not N files)
+  var FIRST_COMMENT = "Curious what your home is worth in today's market? Get your free home value here: https://tinyurl.com/CriterionPaulOnline";   // ready-to-paste first comment (with the link); "" when the page has none
   function downloadZip(){ var a = document.createElement("a"); a.href = ZIP.src; a.download = ZIP.name; a.rel = "noopener";
     document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); }, 500); }
   var ua = navigator.userAgent || "";
@@ -437,6 +457,7 @@ Criterion-RealEstate.com
   };
   var SITE = {ig: "Instagram", fb: "Facebook", li: "LinkedIn"};
   var SHORT_NOTE = "Short link copied. After you post, paste it as the first comment.";
+  var FC_NOTE = "First comment copied. After you post, paste it as the first comment.";
   Array.prototype.forEach.call(document.querySelectorAll("[data-post]"), function(a){
     var net = a.getAttribute("data-post"), k = parseInt(a.getAttribute("data-cap"), 10) || 0;
     var text = CAPTIONS[k].text, n = IMAGES.length;
@@ -444,7 +465,8 @@ Criterion-RealEstate.com
     // the clipboard gets the short link instead, to paste as the first comment.
     var short = (net === "li" && CAPTIONS[k].short_link) || "";
     if (net === "li" && typeof CAPTIONS[k].li_text === "string") text = CAPTIONS[k].li_text;
-    var clip = short || text;
+    var fc = (net === "li" && FIRST_COMMENT) || "";        // LinkedIn copies the full first comment when the page has one
+    var clip = fc || short || text, liCopy = fc || short, NOTE = fc ? FC_NOTE : SHORT_NOTE;
     a.href = COMPOSER[net](text);
     a.addEventListener("click", function(){
       var copied = legacyCopy(clip) ? Promise.resolve(true) : copyNow(clip);   // 1) copy inside the click
@@ -459,18 +481,18 @@ Criterion-RealEstate.com
                      : pic.charAt(0).toUpperCase() + pic.slice(1) + ". The caption is selected above: copy it, then paste it in the post.";
         if (net === "ig") msg = ok ? "Caption copied and " + pic + ". " + unzip + (unzip ? "click" : "Click") + " + Create, attach the " + them + ", and paste the caption."
                                    : msg + " On Instagram, click + Create and attach the " + them + ".";
-        if (short) {
+        if (liCopy) {
           var picLi = pic.charAt(0).toUpperCase() + pic.slice(1);
-          msg = ok ? SHORT_NOTE + " (" + short + ") " + picLi + ". " + unzip + (unzip ? "attach" : "Attach") + " the " + them + "; the caption is already filled in."
-                   : picLi + ". Copy this short link: " + short + " \u2014 after you post, paste it as the first comment.";
+          msg = ok ? NOTE + (fc ? " " : " (" + short + ") ") + picLi + ". " + unzip + (unzip ? "attach" : "Attach") + " the " + them + "; the caption is already filled in."
+                   : picLi + (fc ? ". Copy the first comment below" : ". Copy this short link: " + short) + " \u2014 after you post, paste it as the first comment.";
           var note = document.getElementById("liNote" + a.id);
-          if (note) { note.innerHTML = "\uD83D\uDD17 <b>" + (ok ? SHORT_NOTE : "Copy the short link below.") + "</b><br><span class=\"li-link\"></span>";
-            note.querySelector(".li-link").textContent = short; note.hidden = false; }
+          if (note) { note.innerHTML = (fc ? "\uD83D\uDCAC <b>" : "\uD83D\uDD17 <b>") + (ok ? NOTE : (fc ? "Copy the first comment below." : "Copy the short link below.")) + "</b><br><span class=\"li-link\"></span>";
+            var ll = note.querySelector(".li-link"); ll.textContent = liCopy; if (fc) ll.className = "li-link li-fc"; note.hidden = false; }
         }
-        if (!ok && !short) selectCaption("caption" + (k ? k : ""));
-        toast(short && ok ? SHORT_NOTE : msg, short ? 9000 : 7000);
+        if (!ok && !liCopy) selectCaption("caption" + (k ? k : ""));
+        toast(liCopy && ok ? NOTE : msg, liCopy ? 9000 : 7000);
         if (status) status.textContent = "✅ " + msg + " " + SITE[net] + " opened in a new tab.";
-        flash(a, ok ? (short ? "✅&nbsp; Link copied &amp; downloaded" : "✅&nbsp; Copied &amp; downloaded") : "✅&nbsp; Downloaded");
+        flash(a, ok ? (fc ? "✅&nbsp; Comment copied &amp; downloaded" : short ? "✅&nbsp; Link copied &amp; downloaded" : "✅&nbsp; Copied &amp; downloaded") : "✅&nbsp; Downloaded");
       });
       // 3) default action: open the composer in a new tab (no preventDefault)
     });
@@ -520,6 +542,34 @@ Criterion-RealEstate.com
     requestAnimationFrame(function(){ track.style.scrollBehavior = ""; }); });
 })();
 </script>
+
+<script>
+(function(){
+  function legacy(t){ var ta=document.createElement("textarea"); ta.value=t; ta.setAttribute("readonly","");
+    ta.style.cssText="position:fixed;top:0;left:0;opacity:0;font-size:16px"; document.body.appendChild(ta);
+    ta.focus(); ta.select(); try{ta.setSelectionRange(0,t.length);}catch(e){}
+    var ok=false; try{ok=document.execCommand("copy");}catch(e){} ta.remove();
+    try{window.getSelection().removeAllRanges();}catch(e){} return ok; }
+  function copy(t){ if(navigator.clipboard&&window.isSecureContext){ try{ return navigator.clipboard.writeText(t).then(function(){return true;},function(){return legacy(t);}); }catch(e){} }
+    return Promise.resolve(legacy(t)); }
+  window.CRIT_COPY_TEXT = window.CRIT_COPY_TEXT || copy;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-fc-copy]"), function(btn){
+    var box=document.getElementById(btn.getAttribute("data-fc-copy")), st=document.getElementById(btn.getAttribute("data-fc-status"));
+    var orig=btn.innerHTML, t;
+    btn.addEventListener("click", function(){
+      var text=box.textContent;
+      copy(text).then(function(ok){
+        clearTimeout(t);
+        if(ok){ btn.innerHTML="\u2705&nbsp; Copied!"; btn.classList.add("done"); if(st) st.textContent="Copied! Paste it as your first comment after you post.";
+          t=setTimeout(function(){ btn.innerHTML=orig; btn.classList.remove("done"); if(st) st.textContent=""; },3000); }
+        else { var r=document.createRange(); r.selectNodeContents(box); var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+          if(st) st.textContent="The comment is selected. Tap Copy on the menu."; }
+      });
+    });
+  });
+})();
+</script>
+
 <div class="pp">
 <div id="pp-scrim" hidden></div>
 <aside id="pp-drawer" role="dialog" aria-modal="true" aria-labelledby="pp-h" aria-hidden="true">
