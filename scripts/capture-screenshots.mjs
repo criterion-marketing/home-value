@@ -15,6 +15,7 @@ import {
   composeAddress,
   parseAddress,
   parseEstimate,
+  QUIZ_SECONDS,
   secondsRemaining,
   timeLeftLabel,
   validate,
@@ -310,16 +311,19 @@ async function runBrowser() {
   assert.ok(ogImage.endsWith("/home-worth-share.jpg"));
   const logoOk = await page.$eval(".logo", (img) => img.complete && img.naturalWidth === 1200);
   assert.equal(logoOk, true);
-  const phone = await page.$eval(".phone", (node) => ({ href: node.href, text: node.textContent }));
-  assert.equal(phone.href, "tel:+14758975114");
-  assert.match(phone.text, /\(475\) 897-5114/);
+  assert.equal(await page.$(".phone"), null);
+  const introTime = await page.$eval(".intro-time", (node) => node.textContent);
+  assert.equal(introTime, `Takes about ${QUIZ_SECONDS} seconds`);
   const footer = await page.$eval(".footer", (node) => node.innerText);
   assert.match(footer, /Equal Housing Opportunity/);
   assert.match(footer, /Criterion Real Estate LLC, licensed in CT & NY/);
   const bodyText = await page.evaluate(() => document.body.innerText);
+  const pageHtml = await page.content();
   assert.equal(/daniel/i.test(bodyText), false);
   assert.equal(/stamford/i.test(bodyText), false);
   assert.equal(/made with lovable/i.test(bodyText), false);
+  assert.equal(/897-5114/.test(pageHtml), false);
+  assert.equal(/tel:/.test(pageHtml), false);
 
   await page.click(".intro .pill");
   await page.waitForSelector(".card");
@@ -410,8 +414,19 @@ async function runBrowser() {
   await page.goto(`${base}/?src=paul-mailer`, { waitUntil: "networkidle0" });
   await page.evaluate(() => document.fonts.ready);
   await shot(page, "intro-mobile.png");
+  assert.equal(
+    await page.$eval(".intro-time", (node) => node.textContent),
+    `Takes about ${QUIZ_SECONDS} seconds`,
+  );
+  if (shots) {
+    const footerEl = await page.$(".footer");
+    await footerEl.screenshot({ path: path.join(outDir, "footer-mobile.png") });
+  }
   const fits = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 2);
   assert.equal(fits, true, "mobile intro should fit the viewport");
+  const mobileHtml = await page.content();
+  assert.equal(/897-5114/.test(mobileHtml), false);
+  assert.equal(/tel:/.test(mobileHtml), false);
   await page.click(".intro .pill");
   await page.waitForSelector(".card");
   const progressNow = await page.$eval("#progress-track", (node) => node.getAttribute("aria-valuenow"));
@@ -600,6 +615,18 @@ async function runBrowser() {
   assert.equal(attributed.reason, "Job or family move");
   assert.equal(attributed.timeline, "3-6 months");
   assert.equal(attributed.agent_priority, "Honest pricing");
+
+  const reportUrl = new URL("r/index.html", page.url()).href;
+  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  await page.goto(reportUrl, { waitUntil: "networkidle0" });
+  await page.waitForSelector("#bad:not([hidden])");
+  const reportText = await page.$eval("#bad", (node) => node.innerText);
+  assert.match(reportText, /Request your market analysis again/);
+  assert.equal(await page.$eval("#bad .btn", (node) => node.getAttribute("href")), "../");
+  const reportHtml = await page.content();
+  assert.equal(/897-5114/.test(reportHtml), false);
+  assert.equal(/tel:/.test(reportHtml), false);
+  assert.match(reportHtml, /Request your market analysis/);
 
   assert.equal(pageErrors.length, 0, pageErrors.join("\n"));
   await browser.close();

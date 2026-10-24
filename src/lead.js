@@ -173,7 +173,7 @@ const STATE_ABBR = new Set(STATES.map(([abbr]) => abbr));
 const STATE_BY_NAME = Object.fromEntries(STATES.map(([abbr, name]) => [name.toLowerCase(), abbr]));
 
 export const SMS_CONSENT_TEXT =
-  "I agree to receive text messages from Criterion Real Estate at (475) 897-5114 about my home valuation at the number provided. Msg & data rates may apply. Reply STOP to opt out.";
+  "I agree to receive text messages from Criterion Real Estate about my home valuation at the number provided. Msg & data rates may apply. Reply STOP to opt out.";
 
 export const PRIVACY_TEXT =
   "We respect your privacy. Your information is never sold or shared and is used only to prepare your market analysis.";
