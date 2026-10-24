@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>__TITLE__</title>
     <meta name="description" content="__DESCRIPTION__" />
     <meta property="og:title" content="__TITLE__" />
@@ -21,7 +21,16 @@
   </head>
   <body>
     <div class="page">
-      <div class="progress" aria-hidden="true">
+      <div
+        class="progress"
+        id="progress-track"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        aria-valuetext="Not started"
+        aria-label="Form progress"
+      >
         <div class="progress__bar" id="progress"></div>
       </div>
 

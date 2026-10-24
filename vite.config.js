@@ -27,13 +27,19 @@ export default defineConfig({
   plugins: [
     {
       name: "site-meta",
-      transformIndexHtml(html) {
-        const shareImage = new URL("home-worth-share.jpg", pageUrl()).href;
-        return html
-          .replaceAll("__TITLE__", esc(TITLE))
-          .replaceAll("__DESCRIPTION__", esc(DESCRIPTION))
-          .replaceAll("__PAGE_URL__", esc(pageUrl()))
-          .replaceAll("__SHARE_IMAGE_URL__", esc(shareImage));
+      // Run before Vite's dev HTML pass. That pass treats a placeholder like
+      // __PAGE_URL__ as a relative path and prefixes `base`, which would turn
+      // the canonical URL into /home-value/https://...
+      transformIndexHtml: {
+        order: "pre",
+        handler(html) {
+          const shareImage = new URL("home-worth-share.jpg", pageUrl()).href;
+          return html
+            .replaceAll("__TITLE__", esc(TITLE))
+            .replaceAll("__DESCRIPTION__", esc(DESCRIPTION))
+            .replaceAll("__PAGE_URL__", esc(pageUrl()))
+            .replaceAll("__SHARE_IMAGE_URL__", esc(shareImage));
+        },
       },
     },
   ],

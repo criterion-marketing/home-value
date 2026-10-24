@@ -4,10 +4,14 @@ import path from "node:path";
 import puppeteer from "puppeteer-core";
 import {
   ATTRIBUTION_KEYS,
+  LEAD_FIELDS,
   SMS_CONSENT_TEXT,
+  STEPS,
   THANKS_TEXT,
   buildLeadPayload,
+  canCapturePartial,
   captureAttribution,
+  parseEstimate,
   validate,
 } from "../src/lead.js";
 import { site } from "../site.config.js";
@@ -33,6 +37,17 @@ function checkLeadLogic() {
   assert.equal(validate("notes", "ok"), null);
   assert.equal(validate("notes", "n".repeat(2001)), "Please keep notes under 2000 characters.");
   assert.equal(validate("timeline", ""), null);
+  assert.equal(validate("timeline", "Just curious"), "Please choose one.");
+  assert.equal(validate("timeline", "Not sure"), null);
+  assert.equal(validate("owner_estimate", ""), null);
+  assert.equal(validate("owner_estimate", "nope"), "Please enter a dollar amount, or leave it blank.");
+  assert.equal(validate("owner_estimate", "$450,000"), null);
+  assert.equal(parseEstimate(""), null);
+  assert.equal(parseEstimate("$450,000"), 450000);
+  assert.equal(parseEstimate("450000.40"), 450000);
+  assert.equal(parseEstimate("0"), null);
+  assert.equal(canCapturePartial({ address: "123 Main", phone: "555" }), false);
+  assert.equal(canCapturePartial({ address: "123 Main Street", phone: "(555) 555-0123" }), true);
 
   const params = new URLSearchParams({
     utm_source: "q".repeat(250),
@@ -56,25 +71,15 @@ function checkLeadLogic() {
       email: "",
       timeline: "",
       notes: "  hello ",
+      intent: "Sell",
+      reason: "Not a real reason",
+      owner_estimate: " $450,000 ",
+      agent_priority: "Low pressure",
     },
     false,
     utm,
   );
-  assert.deepEqual(Object.keys(payload), [
-    "name",
-    "address",
-    "phone",
-    "email",
-    "timeline",
-    "notes",
-    "sms_consent",
-    "utm_source",
-    "utm_medium",
-    "utm_campaign",
-    "utm_content",
-    "utm_term",
-    "src",
-  ]);
+  assert.deepEqual(Object.keys(payload), LEAD_FIELDS);
   assert.equal(payload.name, null);
   assert.equal(payload.address, "123 Main");
   assert.equal(payload.phone, "5555555555");
@@ -82,7 +87,12 @@ function checkLeadLogic() {
   assert.equal(payload.timeline, null);
   assert.equal(payload.notes, "hello");
   assert.equal(payload.sms_consent, false);
+  assert.equal(payload.intent, "Sell");
+  assert.equal(payload.reason, null);
+  assert.equal(payload.owner_estimate, 450000);
+  assert.equal(payload.agent_priority, "Low pressure");
   assert.equal("source" in payload, false);
+  assert.equal(STEPS.length, 11);
 }
 
 function sleep(ms) {
@@ -99,14 +109,53 @@ async function kicker(page) {
   return page.$eval(".step-kicker", (node) => node.textContent);
 }
 
+async function waitKicker(page, text) {
+  await page.waitForFunction((expected) => document.querySelector(".step-kicker")?.textContent === expected, {}, text);
+}
+
 async function completeUntilConsent(page) {
   await page.click(".intro .pill");
-  await page.waitForSelector(".field-input");
+  await page.waitForSelector(".timeline-btn");
+  assert.equal(await kicker(page), "1 of 11");
+  assert.equal(
+    await page.$eval("#step-question", (node) => node.textContent),
+    "Are you thinking about selling, buying, or both?",
+  );
+  await page.keyboard.press("1");
+  await waitKicker(page, "2 of 11");
+  await page.keyboard.press("1");
+  await waitKicker(page, "3 of 11");
+  await page.keyboard.press("2");
+  await waitKicker(page, "4 of 11");
+  const estimateSize = await page.$eval(".field-input", (node) => parseFloat(getComputedStyle(node).fontSize));
+  assert.ok(estimateSize >= 16, "inputs stay at least 16px so iOS does not zoom");
+  await page.type(".field-input", "nope");
+  await page.keyboard.press("Enter");
+  assert.equal(
+    await page.$eval("#form-error", (node) => node.textContent),
+    "Please enter a dollar amount, or leave it blank.",
+  );
+  await page.click(".field-input", { clickCount: 3 });
+  await page.keyboard.press("Backspace");
+  await page.type(".field-input", "$450,000");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "5 of 11");
+  await page.keyboard.press("5");
+  await waitKicker(page, "6 of 11");
+  await page.type(".field-input", "Fresh paint");
+  await page.keyboard.down("Shift");
+  await page.keyboard.press("Enter");
+  await page.keyboard.up("Shift");
+  assert.equal(await kicker(page), "6 of 11");
+  const notes = await page.$eval(".field-input", (node) => node.value);
+  assert.ok(notes.includes("\n"), "Shift+Enter should insert a newline");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "7 of 11");
   await page.type(".field-input", "123 Main Street, Town, State");
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "2 of 7");
+  await waitKicker(page, "8 of 11");
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "3 of 7");
+  await waitKicker(page, "9 of 11");
   await page.type(".field-input", "555");
   await page.click(".actions .pill");
   const phoneError = await page.$eval("#form-error", (node) => node.textContent);
@@ -114,7 +163,7 @@ async function completeUntilConsent(page) {
   await page.click(".field-input", { clickCount: 3 });
   await page.type(".field-input", "(555) 555-0123");
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "4 of 7");
+  await waitKicker(page, "10 of 11");
   await page.type(".field-input", "not-an-email");
   await page.keyboard.press("Enter");
   const emailError = await page.$eval("#form-error", (node) => node.textContent);
@@ -122,18 +171,7 @@ async function completeUntilConsent(page) {
   await page.click(".field-input", { clickCount: 3 });
   await page.keyboard.press("Backspace");
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "5 of 7");
-  await page.keyboard.press("3");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "6 of 7");
-  await page.type(".field-input", "Fresh paint");
-  await page.keyboard.down("Shift");
-  await page.keyboard.press("Enter");
-  await page.keyboard.up("Shift");
-  assert.equal(await kicker(page), "6 of 7");
-  const notes = await page.$eval(".field-input", (node) => node.value);
-  assert.ok(notes.includes("\n"), "Shift+Enter should insert a newline");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "7 of 7");
+  await waitKicker(page, "11 of 11");
   const consent = await page.$eval(".consent span", (node) => node.textContent);
   assert.equal(consent, SMS_CONSENT_TEXT);
   const privacy = await page.$eval(".privacy", (node) => node.textContent);
@@ -152,7 +190,7 @@ async function runBrowser() {
   const pageErrors = [];
   page.on("pageerror", (error) => pageErrors.push(String(error)));
   await page.setRequestInterception(true);
-  page.on("request", (request) => {
+  page.on("request", async (request) => {
     const url = request.url();
     if (!url.startsWith(site.leadEndpoint)) {
       request.continue();
@@ -169,10 +207,12 @@ async function runBrowser() {
       });
       return;
     }
+    let body = request.postData();
+    if (!body && request.hasPostData()) body = await request.fetchPostData();
     posts.push({
       method: request.method(),
       headers: request.headers(),
-      body: request.postData(),
+      body,
     });
     if (failNext) {
       failNext = false;
@@ -220,23 +260,42 @@ async function runBrowser() {
 
   await page.click(".intro .pill");
   await page.waitForSelector(".card");
-  assert.equal(await kicker(page), "1 of 7");
-  const enterHint = await page.$eval(".enter-hint", (node) => getComputedStyle(node).display);
-  assert.notEqual(enterHint, "none");
+  assert.equal(await kicker(page), "1 of 11");
+  await page.click(".back");
+  await page.waitForSelector(".intro h1");
+
+  await completeUntilConsent(page);
+  await page.click(".back");
+  await waitKicker(page, "10 of 11");
+  await page.click(".back");
+  await waitKicker(page, "9 of 11");
+  await page.click(".back");
+  await waitKicker(page, "8 of 11");
+  await page.click(".back");
+  await waitKicker(page, "7 of 11");
+  const addressHint = await page.$eval(".enter-hint", (node) => getComputedStyle(node).display);
+  assert.notEqual(addressHint, "none");
   await shot(page, "form-desktop.png");
+  await page.click(".field-input", { clickCount: 3 });
+  await page.keyboard.press("Backspace");
   await page.keyboard.press("Enter");
   assert.equal(
     await page.$eval("#form-error", (node) => node.textContent),
     "Please enter the property address.",
   );
-  await page.click(".back");
-  await page.waitForSelector(".intro h1");
-
-  await completeUntilConsent(page);
+  await page.type(".field-input", "123 Main Street, Town, State");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "8 of 11");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "9 of 11");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "10 of 11");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "11 of 11");
   failNext = true;
   await page.click("#submit-btn");
   await page.waitForFunction(() => document.getElementById("form-error")?.textContent?.includes("couldn't send"));
-  assert.equal(await kicker(page), "7 of 7");
+  assert.equal(await kicker(page), "11 of 11");
   await page.click("#submit-btn");
   await page.waitForSelector(".thanks");
   const thanks = await page.$eval(".thanks p", (node) => node.textContent);
@@ -255,45 +314,150 @@ async function runBrowser() {
   assert.equal(body.phone, "(555) 555-0123");
   assert.equal(body.name, null);
   assert.equal(body.email, null);
+  assert.equal(body.intent, "Sell");
+  assert.equal(body.reason, "Downsizing");
   assert.equal(body.timeline, "3-6 months");
+  assert.equal(body.owner_estimate, 450000);
+  assert.equal(body.agent_priority, "Low pressure");
   assert.equal(body.sms_consent, false);
   assert.equal(body.notes.startsWith("Fresh paint"), true);
   assert.equal("source" in body, false);
   assert.equal(body.company_website, "");
+  assert.deepEqual(Object.keys(body), [
+    ...LEAD_FIELDS.filter((key) => !["intent", "reason", "owner_estimate", "agent_priority"].includes(key)),
+    "page_url",
+    "referrer",
+    "user_agent",
+    "company_website",
+    "intent",
+    "reason",
+    "owner_estimate",
+    "agent_priority",
+  ]);
+  const beforeHide = posts.length;
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false })));
+  await sleep(200);
+  assert.equal(posts.length, beforeHide, "a submitted lead is not sent again on leave");
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-  await page.goto(`${base}/`, { waitUntil: "networkidle0" });
+  await page.setUserAgent(
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+  );
+  await page.goto(`${base}/?src=paul-mailer`, { waitUntil: "networkidle0" });
   await page.evaluate(() => document.fonts.ready);
   await shot(page, "intro-mobile.png");
   const fits = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 2);
   assert.equal(fits, true, "mobile intro should fit the viewport");
   await page.click(".intro .pill");
   await page.waitForSelector(".card");
+  const progressNow = await page.$eval("#progress-track", (node) => node.getAttribute("aria-valuenow"));
+  assert.notEqual(progressNow, "0");
+  await shot(page, "quiz-1-intent-mobile.png");
+  await page.click("[data-choice='Both']");
+  await waitKicker(page, "2 of 11");
+  await shot(page, "quiz-2-reason-mobile.png");
+  await page.click("[data-choice='Relocating']");
+  await waitKicker(page, "3 of 11");
+  await shot(page, "quiz-3-timeline-mobile.png");
+  await page.click("[data-choice='Not sure']");
+  await waitKicker(page, "4 of 11");
+  await shot(page, "quiz-4-estimate-mobile.png");
+  await page.click(".actions .pill");
+  await waitKicker(page, "5 of 11");
+  await shot(page, "quiz-5-agent-mobile.png");
+  const mobileKeys = await page.$eval(".key-hint-keys", (node) => getComputedStyle(node).display);
+  assert.equal(mobileKeys, "none");
+  await page.click("[data-choice='Communication']");
+  await waitKicker(page, "6 of 11");
+  await shot(page, "quiz-6-notes-mobile.png");
+  await page.click(".actions .pill");
+  await waitKicker(page, "7 of 11");
   const mobileHint = await page.$eval(".enter-hint", (node) => getComputedStyle(node).display);
   assert.equal(mobileHint, "none");
   await shot(page, "form-mobile.png");
+  const mobileFont = await page.$eval(".field-input", (node) => parseFloat(getComputedStyle(node).fontSize));
+  assert.ok(mobileFont >= 16, "mobile inputs stay at least 16px so iOS Safari does not zoom");
   await page.type(".field-input", "10 Oak Avenue");
   await page.click(".actions .pill");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "2 of 7");
+  await waitKicker(page, "8 of 11");
   await page.click(".actions .pill");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "3 of 7");
+  await waitKicker(page, "9 of 11");
   await page.type(".field-input", "2035550100");
   await page.click(".actions .pill");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "4 of 7");
+  await waitKicker(page, "10 of 11");
   await page.click(".actions .pill");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "5 of 7");
-  await page.click("[data-timeline='Just curious']");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "6 of 7");
-  await page.click(".actions .pill");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "7 of 7");
+  await waitKicker(page, "11 of 11");
   await page.click(".consent input");
   await page.click("#submit-btn");
   await page.waitForSelector(".thanks");
   await shot(page, "thanks-mobile.png");
   const mobilePost = JSON.parse(posts.at(-1).body);
   assert.equal(mobilePost.sms_consent, true);
-  assert.equal(mobilePost.timeline, "Just curious");
+  assert.equal(mobilePost.src, "paul-mailer");
+  assert.equal(mobilePost.intent, "Both");
+  assert.equal(mobilePost.reason, "Relocating");
+  assert.equal(mobilePost.timeline, "Not sure");
+  assert.equal(mobilePost.owner_estimate, null);
+  assert.equal(mobilePost.agent_priority, "Communication");
+  assert.equal(mobilePost.notes, null);
   assert.equal(mobilePost.address, "10 Oak Avenue");
+
+  await page.goto(`${base}/?src=paul-online`, { waitUntil: "networkidle0" });
+  const postsBeforeLeave = posts.length;
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false })));
+  await sleep(200);
+  assert.equal(posts.length, postsBeforeLeave, "leaving before contact does not post a lead");
+  await page.click(".intro .pill");
+  await waitKicker(page, "1 of 11");
+  await page.click(".skip");
+  await waitKicker(page, "2 of 11");
+  await page.click(".skip");
+  await waitKicker(page, "3 of 11");
+  await page.click(".skip");
+  await waitKicker(page, "4 of 11");
+  await page.click(".actions .pill");
+  await waitKicker(page, "5 of 11");
+  await page.click(".skip");
+  await waitKicker(page, "6 of 11");
+  await page.click(".actions .pill");
+  await waitKicker(page, "7 of 11");
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true })));
+  await sleep(100);
+  assert.equal(posts.length, postsBeforeLeave, "a cached page hide is not abandonment");
+  await page.type(".field-input", "9 Pine Road");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "8 of 11");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "9 of 11");
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false })));
+  await sleep(200);
+  assert.equal(posts.length, postsBeforeLeave, "address without a phone is not a lead");
+  await page.type(".field-input", "2035550144");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "10 of 11");
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false })));
+  await sleep(300);
+  assert.equal(posts.length, postsBeforeLeave + 1, "leaving after address and phone posts the lead");
+  const partial = JSON.parse(posts.at(-1).body);
+  assert.equal(partial.src, "paul-online");
+  assert.equal(partial.address, "9 Pine Road");
+  assert.equal(partial.phone, "2035550144");
+  assert.equal(partial.intent, null);
+  assert.equal(partial.reason, null);
+  assert.equal(partial.timeline, null);
+  assert.equal(partial.owner_estimate, null);
+  assert.equal(partial.agent_priority, null);
+  assert.equal(partial.email, null);
+  assert.equal(partial.sms_consent, false);
+  await page.type(".field-input", "ada@example.com");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "11 of 11");
+  await page.click("#submit-btn");
+  await page.waitForSelector(".thanks");
+  const finished = JSON.parse(posts.at(-1).body);
+  assert.equal(finished.email, "ada@example.com");
+  assert.equal(finished.address, "9 Pine Road");
+  assert.equal(finished.src, "paul-online");
 
   const prefill = new URLSearchParams({
     name: "N".repeat(140),
@@ -308,19 +472,28 @@ async function runBrowser() {
   await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
   await page.goto(`${base}/?${prefill}`, { waitUntil: "networkidle0" });
   await page.click(".intro .pill");
+  await page.keyboard.press("d");
+  await waitKicker(page, "2 of 11");
+  await page.keyboard.press("c");
+  await waitKicker(page, "3 of 11");
+  await page.keyboard.press("b");
+  await waitKicker(page, "4 of 11");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "5 of 11");
+  await page.keyboard.press("a");
+  await waitKicker(page, "6 of 11");
+  await page.keyboard.press("Enter");
+  await waitKicker(page, "7 of 11");
   await page.waitForSelector(".field-input");
   const addressValue = await page.$eval(".field-input", (node) => node.value);
   assert.equal(addressValue.length, 300);
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "2 of 7");
+  await waitKicker(page, "8 of 11");
   const nameValue = await page.$eval(".field-input", (node) => node.value);
   assert.equal(nameValue.length, 100);
   await page.keyboard.press("Enter");
   await page.type(".field-input", "2035550199");
   await page.keyboard.press("Enter");
-  await page.keyboard.press("Enter");
-  await page.keyboard.press("b");
-  await page.waitForFunction(() => document.querySelector(".step-kicker")?.textContent === "6 of 7");
   await page.keyboard.press("Enter");
   await page.click("#submit-btn");
   await page.waitForSelector(".thanks");
@@ -333,7 +506,10 @@ async function runBrowser() {
   assert.equal(attributed.utm_content, "card");
   assert.equal(attributed.utm_term, "worth");
   assert.equal(attributed.src.length, 200);
-  assert.equal(attributed.timeline, "0-3 months");
+  assert.equal(attributed.intent, "Just curious");
+  assert.equal(attributed.reason, "Job or family move");
+  assert.equal(attributed.timeline, "3-6 months");
+  assert.equal(attributed.agent_priority, "Honest pricing");
 
   assert.equal(pageErrors.length, 0, pageErrors.join("\n"));
   await browser.close();

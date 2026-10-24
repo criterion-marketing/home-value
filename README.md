@@ -31,13 +31,32 @@ All public settings live in [`site.config.js`](site.config.js):
 
 The form sends one `POST` with `Content-Type: text/plain` and a JSON body, so browsers send no CORS preflight. The script returns `{"ok":true}`. If the response can't be read, the page retries once with `mode: "no-cors"`, and the script drops repeats within 2 minutes.
 
-The body carries these fields:
+The body carries these fields, in this order:
 
-`name`, `address`, `phone`, `email`, `timeline`, `notes`, `sms_consent`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `src`, `page_url`, `referrer`, `user_agent`, `company_website` (hidden spam trap; must be empty)
+`name`, `address`, `phone`, `email`, `timeline`, `notes`, `sms_consent`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `src`, `page_url`, `referrer`, `user_agent`, `company_website` (hidden spam trap; must be empty), `intent`, `reason`, `owner_estimate`, `agent_priority`
 
-`utm_*` and `src` are copied from the page URL, each trimmed to 200 characters, and sent as null when absent. `?name=` and `?address=` prefill those answers. The script fills `Source` with "thanks.io QR".
+The four quiz keys are last so a script that writes values by position does not shift the existing columns.
 
-Do not rename the sheet columns. A scheduled routine reads the Web Submissions tab.
+`utm_*` and `src` are copied from the page URL (`?src=paul-mailer`, `?src=paul-online`, and the other `src` values), each trimmed to 200 characters, and sent as null when absent. `?name=` and `?address=` prefill those answers. The script fills `Source` with "thanks.io QR".
+
+Do not rename or reorder the existing sheet columns. A scheduled routine reads the Web Submissions tab. `intent`, `reason`, `owner_estimate`, and `agent_priority` are new. On the request they follow `company_website`. On the sheet, append them after the last existing column.
+
+| Field | Values |
+| --- | --- |
+| `intent` | `Sell`, `Buy`, `Both`, `Just curious`, or null |
+| `reason` | `Downsizing`, `Need more space`, `Job or family move`, `Cashing out equity`, `Relocating`, `Other`, or null |
+| `timeline` | `0-3 months`, `3-6 months`, `6-12 months`, `12+ months`, `Not sure`, or null. This column already exists. `Just curious` is no longer a timeline; it is an `intent`. |
+| `owner_estimate` | Whole-dollar number (commas and a leading `$` are accepted in the form), or null |
+| `agent_priority` | `Honest pricing`, `Marketing reach`, `Local expertise`, `Communication`, `Low pressure`, `Other`, or null |
+| `notes` | Free text, or null. This column already exists. |
+
+### Apps Script change outside this repo
+
+The web app behind `leadEndpoint` has to write the four new keys into the **Web Submissions** tab. Append these header cells after the existing columns, in this order: `intent`, `reason`, `owner_estimate`, `agent_priority`. In the row builder, copy those JSON properties into the new cells. Do not insert them ahead of existing columns.
+
+Until that script is redeployed, the page still posts the new keys, and the current script will keep logging the original columns only if it copies a fixed list of fields. Quiz answers will not appear on the sheet until the script is updated. No email or text is sent from the page; follow-up stays human-approved.
+
+If a visitor enters a valid address and phone and then leaves before tapping submit, the page sends the same payload once with `navigator.sendBeacon` (falling back to `fetch` keepalive). The script's existing two-minute repeat drop still applies to that request.
 
 ## Deploy
 
@@ -66,4 +85,6 @@ No environment variables are required. The page holds no secrets; the endpoint c
 
 ## What's on the page
 
-The header carries the Criterion wordmark and the phone link `(475) 897-5114`. The footer is the Equal Housing Opportunity mark and “Criterion Real Estate LLC, licensed in CT & NY”. The form asks for address, name, phone, email, selling timeline, notes, and SMS consent, then shows a thank-you state. Address and phone are required. Name, email, timeline, notes, and the SMS checkbox are optional.
+The header carries the Criterion wordmark and the phone link `(475) 897-5114`. The footer is the Equal Housing Opportunity mark and “Criterion Real Estate LLC, licensed in CT & NY”.
+
+The form is one question per screen, with a progress bar. Six short questions come first (intent, reason for moving, timeline, optional home-value guess, what matters in an agent, optional notes). Choice questions advance on tap and can be skipped. The guess and the notes can be left blank. Then the page asks for address, name, phone, email, and SMS consent. Address and phone are required. Name, email, the quiz answers, and the SMS checkbox are optional. A thank-you state follows a successful submit. Leaving after a valid address and phone still posts the lead.

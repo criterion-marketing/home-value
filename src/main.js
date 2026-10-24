@@ -9,32 +9,41 @@ import "@fontsource/inter/latin-ext-700.css";
 import "./styles.css";
 import { site } from "../site.config.js";
 import {
+  CHOICES,
   PRIVACY_TEXT,
   SMS_CONSENT_TEXT,
   STEPS,
   THANKS_TEXT,
-  TIMELINES,
   buildLeadPayload,
+  canCapturePartial,
   captureAttribution,
   validate,
 } from "./lead.js";
 
+const emptyFields = () => ({
+  intent: "",
+  reason: "",
+  timeline: "",
+  owner_estimate: "",
+  agent_priority: "",
+  notes: "",
+  address: "",
+  name: "",
+  phone: "",
+  email: "",
+});
+
 const state = {
-  fields: {
-    address: "",
-    name: "",
-    phone: "",
-    email: "",
-    timeline: "",
-    notes: "",
-  },
+  fields: emptyFields(),
   sms: false,
   utm: captureAttribution(new URLSearchParams()),
   step: -1,
   sending: false,
+  submitted: false,
+  beaconSent: false,
 };
 
-let timelineTimer = 0;
+let choiceTimer = 0;
 
 function svgIcon(paths, className) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -67,18 +76,25 @@ function readQuery() {
 
 function progress() {
   if (state.step < 0) return 0;
-  return Math.min(state.step / STEPS.length, 1) * 100;
+  if (state.step >= STEPS.length) return 100;
+  return ((state.step + 1) / STEPS.length) * 100;
 }
 
 function focusField() {
   window.setTimeout(() => {
-    document.querySelector("[data-autofocus]")?.focus();
+    const target = document.querySelector("[data-autofocus]") || document.getElementById("step-question");
+    if (!target) return;
+    try {
+      target.focus({ preventScroll: true });
+    } catch {
+      target.focus();
+    }
   }, 50);
 }
 
-function setStep(next) {
-  window.clearTimeout(timelineTimer);
-  state.step = next;
+function setStep(nextStep) {
+  window.clearTimeout(choiceTimer);
+  state.step = nextStep;
   render();
   focusField();
 }
@@ -95,7 +111,7 @@ function showError(message) {
 function next() {
   const cur = STEPS[state.step];
   if (!cur || state.sending) return;
-  if (cur.key !== "consent") {
+  if (cur.type !== "consent") {
     const err = validate(cur.key, state.fields[cur.key] ?? "");
     if (err) {
       showError(err);
@@ -105,13 +121,16 @@ function next() {
   setStep(state.step + 1);
 }
 
-function chooseTimeline(choice) {
-  state.fields.timeline = choice;
-  for (const button of document.querySelectorAll("[data-timeline]")) {
-    button.classList.toggle("is-selected", button.dataset.timeline === choice);
+function choose(key, choice) {
+  state.fields[key] = choice;
+  for (const button of document.querySelectorAll("[data-choice]")) {
+    const selected = button.dataset.choice === choice;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
   }
-  window.clearTimeout(timelineTimer);
-  timelineTimer = window.setTimeout(() => setStep(state.step + 1), 220);
+  showError("");
+  window.clearTimeout(choiceTimer);
+  choiceTimer = window.setTimeout(() => setStep(state.step + 1), 220);
 }
 
 function setSending(sending) {
@@ -120,6 +139,44 @@ function setSending(sending) {
   if (!button) return;
   button.disabled = sending;
   button.textContent = sending ? "Sending…" : "Get my free market analysis";
+}
+
+function leadBody() {
+  // Quiz answers stay after the original keys so a positional row writer
+  // does not shift page_url, referrer, user_agent, or company_website.
+  const { intent, reason, owner_estimate, agent_priority, ...core } = buildLeadPayload(
+    state.fields,
+    state.sms,
+    state.utm,
+  );
+  return {
+    ...core,
+    page_url: window.location.href.slice(0, 500),
+    referrer: document.referrer.slice(0, 500),
+    user_agent: navigator.userAgent.slice(0, 300),
+    company_website: document.getElementById("company_website")?.value ?? "",
+    intent,
+    reason,
+    owner_estimate,
+    agent_priority,
+  };
+}
+
+function deliverQuietly(body) {
+  try {
+    const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+    if (navigator.sendBeacon?.(site.leadEndpoint, blob)) return;
+  } catch {
+    // Some browsers reject the beacon body. The fetch below is the fallback.
+  }
+  fetch(site.leadEndpoint, {
+    method: "POST",
+    mode: "no-cors",
+    keepalive: true,
+    credentials: "omit",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body,
+  }).catch(() => {});
 }
 
 async function postLead(payload) {
@@ -145,17 +202,12 @@ async function postLead(payload) {
 }
 
 async function submit() {
-  if (state.sending || state.step !== STEPS.length - 1) return;
+  if (state.sending || state.submitted || state.step !== STEPS.length - 1) return;
   setSending(true);
   showError("");
   try {
-    await postLead({
-      ...buildLeadPayload(state.fields, state.sms, state.utm),
-      page_url: window.location.href.slice(0, 500),
-      referrer: document.referrer.slice(0, 500),
-      user_agent: navigator.userAgent.slice(0, 300),
-      company_website: document.getElementById("company_website")?.value ?? "",
-    });
+    await postLead(leadBody());
+    state.submitted = true;
     setSending(false);
     setStep(STEPS.length);
   } catch {
@@ -164,17 +216,25 @@ async function submit() {
   }
 }
 
+function onPageHide(event) {
+  if (event.persisted || state.submitted || state.sending || state.beaconSent) return;
+  if (!canCapturePartial(state.fields)) return;
+  state.beaconSent = true;
+  deliverQuietly(JSON.stringify(leadBody()));
+}
+
 function onKey(event) {
   const cur = STEPS[state.step];
-  if (!cur || event.metaKey || event.ctrlKey || event.altKey) return;
-  if (cur.key === "timeline") {
-    const number = Number(event.key);
-    const letter = "abcde".indexOf(event.key.toLowerCase());
-    const index = number >= 1 && number <= 5 ? number - 1 : letter;
-    const choice = TIMELINES[index];
+  if (!cur || event.metaKey || event.ctrlKey || event.altKey || event.isComposing) return;
+  if (cur.type === "choice") {
+    const choices = CHOICES[cur.key];
+    const number = /^[1-9]$/.test(event.key) ? Number(event.key) - 1 : -1;
+    const letter = "abcdef".indexOf(event.key.toLowerCase());
+    const index = number >= 0 ? number : letter;
+    const choice = choices[index];
     if (choice) {
       event.preventDefault();
-      chooseTimeline(choice);
+      choose(cur.key, choice);
       return;
     }
   }
@@ -193,7 +253,7 @@ function renderIntro() {
   title.textContent = "See what a buyer might offer for your home today";
   const copy = document.createElement("p");
   copy.textContent =
-    "A free, no-obligation market analysis prepared by our local team — not an automated estimate.";
+    "A few quick questions, then your address. A free, no-obligation market analysis prepared by our local team — not an automated estimate.";
   const button = document.createElement("button");
   button.type = "button";
   button.className = "pill";
@@ -204,43 +264,52 @@ function renderIntro() {
 }
 
 function fieldControl(step) {
-  if (step.key === "timeline") {
+  if (step.type === "choice") {
+    const choices = CHOICES[step.key];
     const list = document.createElement("div");
     list.className = "timeline";
-    TIMELINES.forEach((choice, index) => {
+    list.setAttribute("role", "group");
+    list.setAttribute("aria-labelledby", "step-question");
+    choices.forEach((choice, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "timeline-btn";
-      button.dataset.timeline = choice;
-      if (index === 0) button.dataset.autofocus = "true";
-      if (state.fields.timeline === choice) button.classList.add("is-selected");
+      button.dataset.choice = choice;
+      button.setAttribute("aria-pressed", state.fields[step.key] === choice ? "true" : "false");
+      if (state.fields[step.key] === choice) button.classList.add("is-selected");
       const cap = document.createElement("span");
       cap.className = "keycap";
+      cap.setAttribute("aria-hidden", "true");
       cap.textContent = String(index + 1);
       const label = document.createElement("span");
       label.textContent = choice;
       button.append(cap, label, svgIcon(["M20 6 9 17l-5-5"], "timeline-check"));
-      button.addEventListener("click", () => chooseTimeline(choice));
+      button.addEventListener("click", () => choose(step.key, choice));
       list.append(button);
     });
     return list;
   }
 
-  if (step.key === "notes") {
+  if (step.type === "notes") {
     const area = document.createElement("textarea");
     area.className = "field-input field-notes";
+    area.id = "step-field";
+    area.name = "notes";
     area.rows = 3;
     area.maxLength = 2000;
     area.placeholder = step.placeholder;
     area.value = state.fields.notes;
     area.dataset.autofocus = "true";
+    area.setAttribute("aria-labelledby", "step-question");
+    area.autocomplete = "off";
+    area.enterKeyHint = "done";
     area.addEventListener("input", () => {
       state.fields.notes = area.value;
     });
     return area;
   }
 
-  if (step.key === "consent") {
+  if (step.type === "consent") {
     const label = document.createElement("label");
     label.className = "consent";
     const box = document.createElement("input");
@@ -258,9 +327,13 @@ function fieldControl(step) {
 
   const input = document.createElement("input");
   input.className = "field-input";
+  input.id = "step-field";
+  input.name = step.key;
   input.placeholder = step.placeholder ?? "";
-  input.value = state.fields[step.key];
+  input.value = state.fields[step.key] ?? "";
   input.dataset.autofocus = "true";
+  input.setAttribute("aria-labelledby", "step-question");
+  input.enterKeyHint = "done";
   if (step.key === "phone") {
     input.type = "tel";
     input.inputMode = "tel";
@@ -270,10 +343,19 @@ function fieldControl(step) {
     input.type = "email";
     input.inputMode = "email";
     input.autocomplete = "email";
+    input.autocapitalize = "none";
+    input.spellcheck = false;
     input.maxLength = 255;
   } else if (step.key === "name") {
     input.autocomplete = "name";
     input.maxLength = 100;
+  } else if (step.type === "money") {
+    input.inputMode = "decimal";
+    input.autocomplete = "off";
+    input.autocapitalize = "off";
+    input.spellcheck = false;
+    input.maxLength = 16;
+    input.setAttribute("aria-describedby", "step-hint");
   } else {
     input.autocomplete = "street-address";
     input.maxLength = 300;
@@ -295,12 +377,15 @@ function renderStep() {
 
   const question = document.createElement("h2");
   question.className = "step-q font-display";
+  question.id = "step-question";
+  question.tabIndex = -1;
   question.textContent = step.q;
 
   card.append(kicker, question);
   if (step.hint) {
     const hint = document.createElement("p");
     hint.className = "step-hint";
+    hint.id = "step-hint";
     hint.textContent = step.hint;
     card.append(hint);
   }
@@ -319,7 +404,7 @@ function renderStep() {
 
   const actions = document.createElement("div");
   actions.className = "actions";
-  if (step.key === "consent") {
+  if (step.type === "consent") {
     const submitButton = document.createElement("button");
     submitButton.type = "button";
     submitButton.id = "submit-btn";
@@ -327,11 +412,11 @@ function renderStep() {
     submitButton.textContent = "Get my free market analysis";
     submitButton.addEventListener("click", () => void submit());
     actions.append(submitButton);
-  } else if (step.key !== "timeline") {
+  } else if (step.type !== "choice") {
     const ok = document.createElement("button");
     ok.type = "button";
     ok.className = "pill";
-    ok.append(document.createTextNode("OK"), checkIcon());
+    ok.append(document.createTextNode(step.optional ? "Continue" : "OK"), checkIcon());
     ok.addEventListener("click", next);
     const hint = document.createElement("span");
     hint.className = "enter-hint";
@@ -341,12 +426,26 @@ function renderStep() {
   } else {
     const hint = document.createElement("span");
     hint.className = "key-hint";
-    hint.textContent = "Tap a choice, or press 1–5";
-    actions.append(hint);
+    const count = CHOICES[step.key].length;
+    hint.append(document.createTextNode("Tap a choice"));
+    const keys = document.createElement("span");
+    keys.className = "key-hint-keys";
+    keys.textContent = `, or press 1–${count}`;
+    hint.append(keys);
+    const skip = document.createElement("button");
+    skip.type = "button";
+    skip.className = "skip";
+    skip.textContent = "Skip";
+    skip.addEventListener("click", () => {
+      window.clearTimeout(choiceTimer);
+      state.fields[step.key] = "";
+      setStep(state.step + 1);
+    });
+    actions.append(hint, skip);
   }
   card.append(actions);
 
-  if (step.key === "consent") {
+  if (step.type === "consent") {
     const privacy = document.createElement("p");
     privacy.className = "privacy";
     privacy.textContent = PRIVACY_TEXT;
@@ -377,7 +476,12 @@ function renderThanks() {
 }
 
 function render() {
-  document.getElementById("progress").style.width = `${progress()}%`;
+  const value = progress();
+  const bar = document.getElementById("progress");
+  bar.style.width = `${value}%`;
+  const track = document.getElementById("progress-track");
+  track.setAttribute("aria-valuenow", String(Math.round(value)));
+  track.setAttribute("aria-valuetext", state.step < 0 ? "Not started" : `${Math.round(value)} percent`);
   const main = document.getElementById("main");
   main.dataset.step = String(state.step);
   main.replaceChildren(state.step < 0 ? renderIntro() : state.step >= STEPS.length ? renderThanks() : renderStep());
@@ -385,4 +489,5 @@ function render() {
 
 readQuery();
 document.addEventListener("keydown", onKey);
+window.addEventListener("pagehide", onPageHide);
 render();
