@@ -55,7 +55,7 @@ export const STEPS = [
     placeholder: "Type here…",
     optional: true,
   },
-  { key: "address", type: "text", q: "What's the property address?", placeholder: "123 Main Street, Town, State" },
+  { key: "address", type: "address", q: "What's the property address?", hint: "Street, city, and ZIP" },
   { key: "name", type: "text", q: "What's your name?", hint: "Optional", placeholder: "Full name", optional: true },
   { key: "phone", type: "text", q: "Best phone number to reach you?", placeholder: "(555) 555-0123" },
   { key: "email", type: "text", q: "Email address?", hint: "Optional", placeholder: "you@example.com", optional: true },
@@ -94,7 +94,83 @@ export const LEAD_FIELDS = [
   "reason",
   "owner_estimate",
   "agent_priority",
+  "street",
+  "city",
+  "state",
+  "zip",
 ];
+
+/** New keys, in the order they are appended after company_website. */
+export const APPENDED_FIELDS = [
+  "intent",
+  "reason",
+  "owner_estimate",
+  "agent_priority",
+  "street",
+  "city",
+  "state",
+  "zip",
+];
+
+/** About a minute for the whole form, rounded to 5 seconds as steps pass. */
+export const QUIZ_SECONDS = 60;
+
+export const STATES = [
+  ["AL", "Alabama"],
+  ["AK", "Alaska"],
+  ["AZ", "Arizona"],
+  ["AR", "Arkansas"],
+  ["CA", "California"],
+  ["CO", "Colorado"],
+  ["CT", "Connecticut"],
+  ["DE", "Delaware"],
+  ["DC", "District of Columbia"],
+  ["FL", "Florida"],
+  ["GA", "Georgia"],
+  ["HI", "Hawaii"],
+  ["ID", "Idaho"],
+  ["IL", "Illinois"],
+  ["IN", "Indiana"],
+  ["IA", "Iowa"],
+  ["KS", "Kansas"],
+  ["KY", "Kentucky"],
+  ["LA", "Louisiana"],
+  ["ME", "Maine"],
+  ["MD", "Maryland"],
+  ["MA", "Massachusetts"],
+  ["MI", "Michigan"],
+  ["MN", "Minnesota"],
+  ["MS", "Mississippi"],
+  ["MO", "Missouri"],
+  ["MT", "Montana"],
+  ["NE", "Nebraska"],
+  ["NV", "Nevada"],
+  ["NH", "New Hampshire"],
+  ["NJ", "New Jersey"],
+  ["NM", "New Mexico"],
+  ["NY", "New York"],
+  ["NC", "North Carolina"],
+  ["ND", "North Dakota"],
+  ["OH", "Ohio"],
+  ["OK", "Oklahoma"],
+  ["OR", "Oregon"],
+  ["PA", "Pennsylvania"],
+  ["RI", "Rhode Island"],
+  ["SC", "South Carolina"],
+  ["SD", "South Dakota"],
+  ["TN", "Tennessee"],
+  ["TX", "Texas"],
+  ["UT", "Utah"],
+  ["VT", "Vermont"],
+  ["VA", "Virginia"],
+  ["WA", "Washington"],
+  ["WV", "West Virginia"],
+  ["WI", "Wisconsin"],
+  ["WY", "Wyoming"],
+];
+
+const STATE_ABBR = new Set(STATES.map(([abbr]) => abbr));
+const STATE_BY_NAME = Object.fromEntries(STATES.map(([abbr, name]) => [name.toLowerCase(), abbr]));
 
 export const SMS_CONSENT_TEXT =
   "I agree to receive text messages from Criterion Real Estate at (475) 897-5114 about my home valuation at the number provided. Msg & data rates may apply. Reply STOP to opt out.";
@@ -110,6 +186,114 @@ const EMAIL_RE =
   /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/;
 
 const ESTIMATE_MAX = 100_000_000;
+
+export function secondsRemaining(stepIndex, total = STEPS.length) {
+  if (stepIndex < 0 || stepIndex >= total) return null;
+  const raw = ((total - stepIndex) / total) * QUIZ_SECONDS;
+  return Math.max(5, Math.ceil(raw / 5) * 5);
+}
+
+export function timeLeftLabel(stepIndex, total = STEPS.length) {
+  const seconds = secondsRemaining(stepIndex, total);
+  if (seconds == null) return "";
+  return `About ${seconds} seconds left`;
+}
+
+export function normalizeState(value) {
+  const raw = String(value ?? "").trim().replace(/\./g, "");
+  if (!raw) return "";
+  const upper = raw.toUpperCase();
+  if (STATE_ABBR.has(upper)) return upper;
+  return STATE_BY_NAME[raw.toLowerCase()] ?? "";
+}
+
+export function normalizeZip(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  if (digits.length === 5) return digits;
+  if (digits.length === 9) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  return "";
+}
+
+export function composeAddress(parts) {
+  const street = String(parts?.street ?? "").trim();
+  const city = String(parts?.city ?? "").trim();
+  const state = normalizeState(parts?.state || "");
+  const zip = normalizeZip(parts?.zip);
+  if (!street) return "";
+  if (!city && !zip) return street;
+  const region = [state, zip].filter(Boolean).join(" ");
+  return [street, city, region].filter(Boolean).join(", ");
+}
+
+/** Split a single-line address into parts. State defaults to CT when the line has no state. */
+export function parseAddress(value) {
+  const raw = String(value ?? "").trim().replace(/\s+/g, " ");
+  const empty = { street: "", city: "", state: "CT", zip: "" };
+  if (!raw) return empty;
+  if (raw.length > 300) return { ...empty, street: raw.slice(0, 200) };
+
+  const zipMatch = raw.match(/(\d{5})(?:-(\d{4}))?\s*$/);
+  if (!zipMatch) return { ...empty, street: raw.slice(0, 200) };
+  const zip = zipMatch[2] ? `${zipMatch[1]}-${zipMatch[2]}` : zipMatch[1];
+  const head = raw.slice(0, zipMatch.index).trim().replace(/[,\s]+$/, "");
+  const bits = head.split(",").map((part) => part.trim()).filter(Boolean);
+
+  let state = "";
+  let city = "";
+  let streetBits = [];
+  if (bits.length >= 2) {
+    const last = bits[bits.length - 1];
+    const asState = normalizeState(last);
+    if (asState && last.length <= 20) {
+      state = asState;
+      city = bits[bits.length - 2];
+      streetBits = bits.slice(0, -2);
+    } else {
+      const mixed = last.match(/^(.*\S)\s+([A-Za-z]{2})$/);
+      if (mixed && normalizeState(mixed[2])) {
+        state = normalizeState(mixed[2]);
+        city = mixed[1];
+        streetBits = bits.slice(0, -1);
+      }
+    }
+  } else if (bits.length === 1) {
+    const loose = bits[0].match(/^(.*\S)\s+([A-Za-z][A-Za-z .'-]*?\S)\s+([A-Za-z]{2})$/);
+    if (loose && normalizeState(loose[3])) {
+      streetBits = [loose[1]];
+      city = loose[2];
+      state = normalizeState(loose[3]);
+    }
+  }
+
+  if (!state || !city || streetBits.length === 0 || !/[A-Za-z]/.test(streetBits.join(" "))) {
+    return { ...empty, street: raw.slice(0, 200) };
+  }
+  return {
+    street: streetBits.join(", ").slice(0, 200),
+    city: city.slice(0, 80),
+    state,
+    zip,
+  };
+}
+
+export function addressIssue(fields) {
+  const street = String(fields?.street ?? "").trim();
+  const city = String(fields?.city ?? "").trim();
+  const state = normalizeState(fields?.state || "");
+  const zip = normalizeZip(fields?.zip);
+  if (!street || !/[A-Za-z]/.test(street)) return { field: "street", message: "Please enter the street address." };
+  if (street.length > 200) return { field: "street", message: "Street address is too long." };
+  if (!city) return { field: "city", message: "Please enter the city or town." };
+  if (city.length > 80 || !/^[A-Za-z][A-Za-z .'-]*$/.test(city)) {
+    return { field: "city", message: "Please enter a city or town." };
+  }
+  if (!state) return { field: "state", message: "Please choose a state." };
+  if (!zip) return { field: "zip", message: "Please enter a 5-digit ZIP code." };
+  if (composeAddress({ street, city, state, zip }).length > 300) {
+    return { field: "street", message: "Address is too long." };
+  }
+  return null;
+}
 
 export function captureAttribution(params) {
   return Object.fromEntries(
@@ -135,8 +319,8 @@ function choiceOrNull(key, value) {
 export function validate(key, value) {
   const text = String(value ?? "");
   if (key === "address") {
-    if (!text.trim()) return "Please enter the property address.";
-    if (text.length > 300) return "Address is too long.";
+    if (text.trim().length > 300) return "Address is too long.";
+    return addressIssue(parseAddress(text))?.message ?? null;
   }
   if (key === "name" && text.length > 100) return "Name is too long.";
   if (key === "phone" && (text.replace(/\D/g, "").length < 10 || text.length > 30)) {
@@ -161,17 +345,36 @@ export function validate(key, value) {
   return null;
 }
 
-/** Address and phone are enough to keep a lead when someone leaves early. */
+function partsFromFields(fields) {
+  const directStreet = String(fields?.street ?? "").trim();
+  const directCity = String(fields?.city ?? "").trim();
+  const directZip = String(fields?.zip ?? "").trim();
+  if (directStreet || directCity || directZip) {
+    return {
+      street: directStreet,
+      city: directCity,
+      state: normalizeState(fields?.state || "CT") || "CT",
+      zip: directZip,
+    };
+  }
+  return parseAddress(fields?.address ?? "");
+}
+
+/** A full address and phone are enough to keep a lead when someone leaves early. */
 export function canCapturePartial(fields) {
-  return validate("address", fields?.address ?? "") == null && validate("phone", fields?.phone ?? "") == null;
+  return addressIssue(partsFromFields(fields)) == null && validate("phone", fields?.phone ?? "") == null;
 }
 
 /** Fields the Apps Script web app stores; the 15-minute lead routine reads them from the sheet. */
 export function buildLeadPayload(fields, smsConsent, utm) {
   const estimate = parseEstimate(fields.owner_estimate ?? "");
+  const parts = partsFromFields(fields);
+  const state = normalizeState(parts.state);
+  const zip = normalizeZip(parts.zip);
+  const composed = composeAddress({ ...parts, state, zip });
   return {
     name: (fields.name ?? "").trim() || null,
-    address: (fields.address ?? "").trim(),
+    address: composed || String(fields.address ?? "").trim(),
     phone: (fields.phone ?? "").trim(),
     email: (fields.email ?? "").trim() || null,
     timeline: choiceOrNull("timeline", fields.timeline),
@@ -187,5 +390,9 @@ export function buildLeadPayload(fields, smsConsent, utm) {
     reason: choiceOrNull("reason", fields.reason),
     owner_estimate: estimate,
     agent_priority: choiceOrNull("agent_priority", fields.agent_priority),
+    street: parts.street.trim() || null,
+    city: parts.city.trim() || null,
+    state: state || null,
+    zip: zip || null,
   };
 }

@@ -12,11 +12,16 @@ import {
   CHOICES,
   PRIVACY_TEXT,
   SMS_CONSENT_TEXT,
+  STATES,
   STEPS,
   THANKS_TEXT,
+  addressIssue,
   buildLeadPayload,
   canCapturePartial,
   captureAttribution,
+  composeAddress,
+  parseAddress,
+  timeLeftLabel,
   validate,
 } from "./lead.js";
 
@@ -27,6 +32,10 @@ const emptyFields = () => ({
   owner_estimate: "",
   agent_priority: "",
   notes: "",
+  street: "",
+  city: "",
+  state: "CT",
+  zip: "",
   address: "",
   name: "",
   phone: "",
@@ -67,10 +76,29 @@ const checkIcon = () => svgIcon(["M20 6 9 17l-5-5"], "icon-sm");
 const arrowIcon = () => svgIcon(["m12 19-7-7 7-7", "M19 12H5"], "icon-sm");
 const enterIcon = () => svgIcon(["m9 10-5 5 5 5", "M20 4v7a4 4 0 0 1-4 4H4"], "icon-xs");
 
+function syncAddress() {
+  state.fields.address = composeAddress(state.fields);
+}
+
+function readAddressFromDom() {
+  const street = document.getElementById("street");
+  if (!street) return;
+  state.fields.street = street.value;
+  state.fields.city = document.getElementById("city")?.value ?? "";
+  state.fields.state = document.getElementById("state")?.value ?? "CT";
+  state.fields.zip = document.getElementById("zip")?.value ?? "";
+  syncAddress();
+}
+
 function readQuery() {
   const params = new URLSearchParams(window.location.search);
   state.fields.name = (params.get("name") ?? "").slice(0, 100);
-  state.fields.address = (params.get("address") ?? "").slice(0, 300);
+  const parsed = parseAddress((params.get("address") ?? "").slice(0, 300));
+  state.fields.street = parsed.street;
+  state.fields.city = parsed.city;
+  state.fields.state = parsed.state || "CT";
+  state.fields.zip = parsed.zip;
+  syncAddress();
   state.utm = captureAttribution(params);
 }
 
@@ -111,7 +139,17 @@ function showError(message) {
 function next() {
   const cur = STEPS[state.step];
   if (!cur || state.sending) return;
-  if (cur.type !== "consent") {
+  if (cur.type === "address") {
+    readAddressFromDom();
+    const issue = addressIssue(state.fields);
+    if (issue) {
+      showError(issue.message);
+      const field = document.getElementById(issue.field);
+      field?.setAttribute("aria-invalid", "true");
+      field?.focus();
+      return;
+    }
+  } else if (cur.type !== "consent") {
     const err = validate(cur.key, state.fields[cur.key] ?? "");
     if (err) {
       showError(err);
@@ -144,11 +182,8 @@ function setSending(sending) {
 function leadBody() {
   // Quiz answers stay after the original keys so a positional row writer
   // does not shift page_url, referrer, user_agent, or company_website.
-  const { intent, reason, owner_estimate, agent_priority, ...core } = buildLeadPayload(
-    state.fields,
-    state.sms,
-    state.utm,
-  );
+  const { intent, reason, owner_estimate, agent_priority, street, city, state: region, zip, ...core } =
+    buildLeadPayload(state.fields, state.sms, state.utm);
   return {
     ...core,
     page_url: window.location.href.slice(0, 500),
@@ -159,6 +194,10 @@ function leadBody() {
     reason,
     owner_estimate,
     agent_priority,
+    street,
+    city,
+    state: region,
+    zip,
   };
 }
 
@@ -218,6 +257,7 @@ async function submit() {
 
 function onPageHide(event) {
   if (event.persisted || state.submitted || state.sending || state.beaconSent) return;
+  readAddressFromDom();
   if (!canCapturePartial(state.fields)) return;
   state.beaconSent = true;
   deliverQuietly(JSON.stringify(leadBody()));
@@ -263,7 +303,109 @@ function renderIntro() {
   return wrap;
 }
 
+function addressControl(id, label, options) {
+  const wrap = document.createElement("div");
+  wrap.className = "addr-field";
+  const caption = document.createElement("label");
+  caption.className = "addr-label";
+  caption.htmlFor = id;
+  caption.textContent = label;
+  const input = document.createElement("input");
+  input.className = "field-input";
+  input.id = id;
+  input.name = id;
+  input.type = "text";
+  input.autocomplete = options.autocomplete;
+  input.placeholder = options.placeholder;
+  input.maxLength = options.maxLength;
+  input.enterKeyHint = options.enterKeyHint ?? "next";
+  input.value = state.fields[id] ?? "";
+  if (options.autofocus) input.dataset.autofocus = "true";
+  if (options.inputMode) input.inputMode = options.inputMode;
+  if (options.autocapitalize) input.autocapitalize = options.autocapitalize;
+  input.spellcheck = false;
+  const remember = () => {
+    state.fields[id] = input.value;
+    syncAddress();
+    input.setAttribute("aria-invalid", "false");
+  };
+  input.addEventListener("input", remember);
+  input.addEventListener("change", remember);
+  wrap.append(caption, input);
+  return wrap;
+}
+
+function renderAddress() {
+  const form = document.createElement("form");
+  form.className = "address-form";
+  form.autocomplete = "on";
+  form.noValidate = true;
+  form.setAttribute("aria-labelledby", "step-question");
+  form.addEventListener("submit", (event) => event.preventDefault());
+
+  form.append(
+    addressControl("street", "Street address", {
+      autocomplete: "address-line1",
+      placeholder: "123 Main Street",
+      maxLength: 200,
+      autofocus: true,
+      autocapitalize: "words",
+    }),
+  );
+
+  const row = document.createElement("div");
+  row.className = "address-row";
+
+  row.append(
+    addressControl("city", "City / town", {
+      autocomplete: "address-level2",
+      placeholder: "Town",
+      maxLength: 80,
+      autocapitalize: "words",
+    }),
+  );
+
+  const stateWrap = document.createElement("div");
+  stateWrap.className = "addr-field";
+  const stateLabel = document.createElement("label");
+  stateLabel.className = "addr-label";
+  stateLabel.htmlFor = "state";
+  stateLabel.textContent = "State";
+  const select = document.createElement("select");
+  select.className = "field-select";
+  select.id = "state";
+  select.name = "state";
+  select.autocomplete = "address-level1";
+  for (const [abbr, name] of STATES) {
+    const option = document.createElement("option");
+    option.value = abbr;
+    option.textContent = name;
+    select.append(option);
+  }
+  select.value = state.fields.state || "CT";
+  select.addEventListener("change", () => {
+    state.fields.state = select.value;
+    syncAddress();
+  });
+  stateWrap.append(stateLabel, select);
+  row.append(stateWrap);
+  form.append(row);
+
+  form.append(
+    addressControl("zip", "ZIP", {
+      autocomplete: "postal-code",
+      placeholder: "06902",
+      maxLength: 10,
+      inputMode: "numeric",
+      enterKeyHint: "done",
+    }),
+  );
+  return form;
+}
+
 function fieldControl(step) {
+  if (step.type === "address") return renderAddress();
+
   if (step.type === "choice") {
     const choices = CHOICES[step.key];
     const list = document.createElement("div");
@@ -452,12 +594,18 @@ function renderStep() {
     card.append(privacy);
   }
 
+  const foot = document.createElement("div");
+  foot.className = "step-foot";
   const back = document.createElement("button");
   back.type = "button";
   back.className = "back";
   back.append(arrowIcon(), document.createTextNode("Back"));
   back.addEventListener("click", () => setStep(state.step - 1));
-  card.append(back);
+  const time = document.createElement("p");
+  time.className = "time-left";
+  time.textContent = timeLeftLabel(state.step);
+  foot.append(back, time);
+  card.append(foot);
   return card;
 }
 

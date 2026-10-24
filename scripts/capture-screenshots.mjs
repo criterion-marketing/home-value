@@ -4,6 +4,7 @@ import path from "node:path";
 import puppeteer from "puppeteer-core";
 import {
   ATTRIBUTION_KEYS,
+  APPENDED_FIELDS,
   LEAD_FIELDS,
   SMS_CONSENT_TEXT,
   STEPS,
@@ -11,7 +12,11 @@ import {
   buildLeadPayload,
   canCapturePartial,
   captureAttribution,
+  composeAddress,
+  parseAddress,
   parseEstimate,
+  secondsRemaining,
+  timeLeftLabel,
   validate,
 } from "../src/lead.js";
 import { site } from "../site.config.js";
@@ -21,9 +26,22 @@ const outDir = path.resolve("docs/screenshots");
 const shots = process.argv.includes("--no-shots") ? false : true;
 
 function checkLeadLogic() {
-  assert.equal(validate("address", "  "), "Please enter the property address.");
+  assert.equal(validate("address", "  "), "Please enter the street address.");
   assert.equal(validate("address", "x".repeat(301)), "Address is too long.");
-  assert.equal(validate("address", "123 Main Street"), null);
+  assert.equal(validate("address", "123 Main Street"), "Please enter the city or town.");
+  assert.equal(validate("address", "123 Main Street, Wilton, CT 06897"), null);
+  assert.equal(validate("address", "123 Main Street, Wilton, Connecticut 06897"), null);
+  assert.deepEqual(parseAddress("123 Main Street, Unit 4, Wilton, CT 06897-1234"), {
+    street: "123 Main Street, Unit 4",
+    city: "Wilton",
+    state: "CT",
+    zip: "06897-1234",
+  });
+  assert.equal(parseAddress("A".repeat(340)).street.length, 200);
+  assert.equal(composeAddress({ street: "10 Oak Avenue", city: "Ridgefield", state: "ct", zip: "06877" }), "10 Oak Avenue, Ridgefield, CT 06877");
+  assert.equal(timeLeftLabel(0), "About 60 seconds left");
+  assert.ok(secondsRemaining(6) < secondsRemaining(0));
+  assert.equal(secondsRemaining(STEPS.length - 1) >= 5, true);
   assert.equal(validate("name", ""), null);
   assert.equal(validate("name", "n".repeat(101)), "Name is too long.");
   assert.equal(validate("phone", "123"), "Please enter a valid phone number.");
@@ -47,7 +65,8 @@ function checkLeadLogic() {
   assert.equal(parseEstimate("450000.40"), 450000);
   assert.equal(parseEstimate("0"), null);
   assert.equal(canCapturePartial({ address: "123 Main", phone: "555" }), false);
-  assert.equal(canCapturePartial({ address: "123 Main Street", phone: "(555) 555-0123" }), true);
+  assert.equal(canCapturePartial({ street: "123 Main Street", city: "Wilton", state: "CT", zip: "06897", phone: "(555) 555-0123" }), true);
+  assert.equal(canCapturePartial({ address: "123 Main Street, Wilton, CT 06897", phone: "(555) 555-0123" }), true);
 
   const params = new URLSearchParams({
     utm_source: "q".repeat(250),
@@ -66,7 +85,11 @@ function checkLeadLogic() {
   const payload = buildLeadPayload(
     {
       name: "  ",
-      address: " 123 Main ",
+      address: "ignored when parts are present",
+      street: " 123 Main Street ",
+      city: " Wilton ",
+      state: "ct",
+      zip: "06897",
       phone: " 5555555555 ",
       email: "",
       timeline: "",
@@ -81,7 +104,11 @@ function checkLeadLogic() {
   );
   assert.deepEqual(Object.keys(payload), LEAD_FIELDS);
   assert.equal(payload.name, null);
-  assert.equal(payload.address, "123 Main");
+  assert.equal(payload.address, "123 Main Street, Wilton, CT 06897");
+  assert.equal(payload.street, "123 Main Street");
+  assert.equal(payload.city, "Wilton");
+  assert.equal(payload.state, "CT");
+  assert.equal(payload.zip, "06897");
   assert.equal(payload.phone, "5555555555");
   assert.equal(payload.email, null);
   assert.equal(payload.timeline, null);
@@ -113,10 +140,24 @@ async function waitKicker(page, text) {
   await page.waitForFunction((expected) => document.querySelector(".step-kicker")?.textContent === expected, {}, text);
 }
 
+async function fillAddress(page, { street, city, state = "CT", zip }) {
+  await page.click("#street", { clickCount: 3 });
+  await page.keyboard.press("Backspace");
+  if (street) await page.type("#street", street);
+  await page.click("#city", { clickCount: 3 });
+  await page.keyboard.press("Backspace");
+  if (city) await page.type("#city", city);
+  await page.select("#state", state);
+  await page.click("#zip", { clickCount: 3 });
+  await page.keyboard.press("Backspace");
+  if (zip) await page.type("#zip", zip);
+}
+
 async function completeUntilConsent(page) {
   await page.click(".intro .pill");
   await page.waitForSelector(".timeline-btn");
   assert.equal(await kicker(page), "1 of 11");
+  assert.equal(await page.$eval(".time-left", (node) => node.textContent), "About 60 seconds left");
   assert.equal(
     await page.$eval("#step-question", (node) => node.textContent),
     "Are you thinking about selling, buying, or both?",
@@ -151,7 +192,29 @@ async function completeUntilConsent(page) {
   assert.ok(notes.includes("\n"), "Shift+Enter should insert a newline");
   await page.keyboard.press("Enter");
   await waitKicker(page, "7 of 11");
-  await page.type(".field-input", "123 Main Street, Town, State");
+  assert.match(await page.$eval(".time-left", (node) => node.textContent), /^About \d+ seconds left$/);
+  const addressSeconds = await page.$eval(".time-left", (node) => Number(node.textContent.match(/\d+/)[0]));
+  assert.ok(addressSeconds < 60, "time left counts down by the address step");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.$eval("#form-error", (node) => node.textContent), "Please enter the street address.");
+  await page.type("#street", "123");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.$eval("#form-error", (node) => node.textContent), "Please enter the street address.");
+  await page.click("#street", { clickCount: 3 });
+  await page.type("#street", "123 Main Street");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.$eval("#form-error", (node) => node.textContent), "Please enter the city or town.");
+  await page.type("#city", "Wilton");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.$eval("#form-error", (node) => node.textContent), "Please enter a 5-digit ZIP code.");
+  await page.select("#state", "CT");
+  assert.equal(await page.$eval("#state", (node) => node.value), "CT");
+  await page.evaluate(() => {
+    document.getElementById("street").value = "123 Main Street";
+    document.getElementById("city").value = "Wilton";
+    document.getElementById("state").value = "NY";
+    document.getElementById("zip").value = "06897";
+  });
   await page.keyboard.press("Enter");
   await waitKicker(page, "8 of 11");
   await page.keyboard.press("Enter");
@@ -276,14 +339,14 @@ async function runBrowser() {
   const addressHint = await page.$eval(".enter-hint", (node) => getComputedStyle(node).display);
   assert.notEqual(addressHint, "none");
   await shot(page, "form-desktop.png");
-  await page.click(".field-input", { clickCount: 3 });
+  await page.click("#street", { clickCount: 3 });
   await page.keyboard.press("Backspace");
   await page.keyboard.press("Enter");
   assert.equal(
     await page.$eval("#form-error", (node) => node.textContent),
-    "Please enter the property address.",
+    "Please enter the street address.",
   );
-  await page.type(".field-input", "123 Main Street, Town, State");
+  await page.type("#street", "123 Main Street");
   await page.keyboard.press("Enter");
   await waitKicker(page, "8 of 11");
   await page.keyboard.press("Enter");
@@ -310,7 +373,11 @@ async function runBrowser() {
   assert.equal(post.headers.apikey, undefined);
   assert.equal(post.headers.authorization, undefined);
   const body = JSON.parse(post.body);
-  assert.equal(body.address, "123 Main Street, Town, State");
+  assert.equal(body.address, "123 Main Street, Wilton, NY 06897");
+  assert.equal(body.street, "123 Main Street");
+  assert.equal(body.city, "Wilton");
+  assert.equal(body.state, "NY");
+  assert.equal(body.zip, "06897");
   assert.equal(body.phone, "(555) 555-0123");
   assert.equal(body.name, null);
   assert.equal(body.email, null);
@@ -324,15 +391,12 @@ async function runBrowser() {
   assert.equal("source" in body, false);
   assert.equal(body.company_website, "");
   assert.deepEqual(Object.keys(body), [
-    ...LEAD_FIELDS.filter((key) => !["intent", "reason", "owner_estimate", "agent_priority"].includes(key)),
+    ...LEAD_FIELDS.filter((key) => !APPENDED_FIELDS.includes(key)),
     "page_url",
     "referrer",
     "user_agent",
     "company_website",
-    "intent",
-    "reason",
-    "owner_estimate",
-    "agent_priority",
+    ...APPENDED_FIELDS,
   ]);
   const beforeHide = posts.length;
   await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false })));
@@ -352,6 +416,7 @@ async function runBrowser() {
   await page.waitForSelector(".card");
   const progressNow = await page.$eval("#progress-track", (node) => node.getAttribute("aria-valuenow"));
   assert.notEqual(progressNow, "0");
+  assert.equal(await page.$eval(".time-left", (node) => node.textContent), "About 60 seconds left");
   await shot(page, "quiz-1-intent-mobile.png");
   await page.click("[data-choice='Both']");
   await waitKicker(page, "2 of 11");
@@ -375,18 +440,24 @@ async function runBrowser() {
   const mobileHint = await page.$eval(".enter-hint", (node) => getComputedStyle(node).display);
   assert.equal(mobileHint, "none");
   await shot(page, "form-mobile.png");
-  const mobileFont = await page.$eval(".field-input", (node) => parseFloat(getComputedStyle(node).fontSize));
+  const mobileFont = await page.$eval("#street", (node) => parseFloat(getComputedStyle(node).fontSize));
   assert.ok(mobileFont >= 16, "mobile inputs stay at least 16px so iOS Safari does not zoom");
-  await page.type(".field-input", "10 Oak Avenue");
+  const stateFont = await page.$eval("#state", (node) => parseFloat(getComputedStyle(node).fontSize));
+  assert.ok(stateFont >= 16, "the state menu stays at least 16px so iOS Safari does not zoom");
+  await fillAddress(page, { street: "10 Oak Avenue", city: "Ridgefield", state: "CT", zip: "06877" });
   await page.click(".actions .pill");
   await waitKicker(page, "8 of 11");
+  await shot(page, "contact-name-mobile.png");
   await page.click(".actions .pill");
   await waitKicker(page, "9 of 11");
+  await shot(page, "contact-phone-mobile.png");
   await page.type(".field-input", "2035550100");
   await page.click(".actions .pill");
   await waitKicker(page, "10 of 11");
+  await shot(page, "contact-email-mobile.png");
   await page.click(".actions .pill");
   await waitKicker(page, "11 of 11");
+  await shot(page, "contact-consent-mobile.png");
   await page.click(".consent input");
   await page.click("#submit-btn");
   await page.waitForSelector(".thanks");
@@ -400,7 +471,11 @@ async function runBrowser() {
   assert.equal(mobilePost.owner_estimate, null);
   assert.equal(mobilePost.agent_priority, "Communication");
   assert.equal(mobilePost.notes, null);
-  assert.equal(mobilePost.address, "10 Oak Avenue");
+  assert.equal(mobilePost.address, "10 Oak Avenue, Ridgefield, CT 06877");
+  assert.equal(mobilePost.street, "10 Oak Avenue");
+  assert.equal(mobilePost.city, "Ridgefield");
+  assert.equal(mobilePost.state, "CT");
+  assert.equal(mobilePost.zip, "06877");
 
   await page.goto(`${base}/?src=paul-online`, { waitUntil: "networkidle0" });
   const postsBeforeLeave = posts.length;
@@ -424,7 +499,10 @@ async function runBrowser() {
   await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true })));
   await sleep(100);
   assert.equal(posts.length, postsBeforeLeave, "a cached page hide is not abandonment");
-  await page.type(".field-input", "9 Pine Road");
+  await page.type("#street", "9 Pine Road");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.$eval("#form-error", (node) => node.textContent), "Please enter the city or town.");
+  await fillAddress(page, { street: "9 Pine Road", city: "Norwalk", zip: "06850" });
   await page.keyboard.press("Enter");
   await waitKicker(page, "8 of 11");
   await page.keyboard.press("Enter");
@@ -440,7 +518,11 @@ async function runBrowser() {
   assert.equal(posts.length, postsBeforeLeave + 1, "leaving after address and phone posts the lead");
   const partial = JSON.parse(posts.at(-1).body);
   assert.equal(partial.src, "paul-online");
-  assert.equal(partial.address, "9 Pine Road");
+  assert.equal(partial.address, "9 Pine Road, Norwalk, CT 06850");
+  assert.equal(partial.street, "9 Pine Road");
+  assert.equal(partial.city, "Norwalk");
+  assert.equal(partial.state, "CT");
+  assert.equal(partial.zip, "06850");
   assert.equal(partial.phone, "2035550144");
   assert.equal(partial.intent, null);
   assert.equal(partial.reason, null);
@@ -456,12 +538,14 @@ async function runBrowser() {
   await page.waitForSelector(".thanks");
   const finished = JSON.parse(posts.at(-1).body);
   assert.equal(finished.email, "ada@example.com");
-  assert.equal(finished.address, "9 Pine Road");
+  assert.equal(finished.address, "9 Pine Road, Norwalk, CT 06850");
+  assert.equal(finished.street, "9 Pine Road");
+  assert.equal(finished.zip, "06850");
   assert.equal(finished.src, "paul-online");
 
   const prefill = new URLSearchParams({
     name: "N".repeat(140),
-    address: "A".repeat(340),
+    address: "123 Main Street, Unit 4, Wilton, CT 06897",
     utm_source: "mail",
     utm_medium: "qr",
     utm_campaign: "spring",
@@ -484,9 +568,11 @@ async function runBrowser() {
   await waitKicker(page, "6 of 11");
   await page.keyboard.press("Enter");
   await waitKicker(page, "7 of 11");
-  await page.waitForSelector(".field-input");
-  const addressValue = await page.$eval(".field-input", (node) => node.value);
-  assert.equal(addressValue.length, 300);
+  await page.waitForSelector("#street");
+  assert.equal(await page.$eval("#street", (node) => node.value), "123 Main Street, Unit 4");
+  assert.equal(await page.$eval("#city", (node) => node.value), "Wilton");
+  assert.equal(await page.$eval("#state", (node) => node.value), "CT");
+  assert.equal(await page.$eval("#zip", (node) => node.value), "06897");
   await page.keyboard.press("Enter");
   await waitKicker(page, "8 of 11");
   const nameValue = await page.$eval(".field-input", (node) => node.value);
@@ -499,7 +585,11 @@ async function runBrowser() {
   await page.waitForSelector(".thanks");
   const attributed = JSON.parse(posts.at(-1).body);
   assert.equal(attributed.name.length, 100);
-  assert.equal(attributed.address.length, 300);
+  assert.equal(attributed.address, "123 Main Street, Unit 4, Wilton, CT 06897");
+  assert.equal(attributed.street, "123 Main Street, Unit 4");
+  assert.equal(attributed.city, "Wilton");
+  assert.equal(attributed.state, "CT");
+  assert.equal(attributed.zip, "06897");
   assert.equal(attributed.utm_source, "mail");
   assert.equal(attributed.utm_medium, "qr");
   assert.equal(attributed.utm_campaign, "spring");
