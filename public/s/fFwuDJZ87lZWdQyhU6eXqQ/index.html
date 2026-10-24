@@ -53,6 +53,13 @@
   a.btn.post + a.btn.post{margin-top:12px}
   a.btn.post.secondary{background:#fff;color:var(--pd);border:3px solid var(--p);box-shadow:none;min-height:60px;font-size:20px;margin-top:12px}
   .poststatus{font-weight:600;color:var(--ok)!important}
+  p.ig-crop-tip{margin:8px 2px 4px;text-align:left;font-size:17px}
+  p.li-note{margin:12px 0 4px;padding:12px 14px;border-radius:12px;background:#EEF6FF;border:2px solid #0A66C2;color:#0B2E59;font-size:18px;line-height:1.4;text-align:left}
+  p.li-note[hidden],html.is-desktop p.li-note[hidden]{display:none!important}
+  p.li-note .li-link{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;word-break:break-all;user-select:all}
+  a.hub-top{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;max-width:640px;min-height:44px;padding:10px 16px;
+    border-radius:999px;background:#fff;color:var(--pd);border:2px solid var(--p);font-weight:700;font-size:18px;text-decoration:none}
+  a.hub-top:hover{background:#F3EEFF}
 </style>
 <script id="device-detect">
 (function(){
@@ -198,15 +205,19 @@
   <h1>Myth vs. Fact + QR</h1>
 </header>
 <main>
+  <a class="hub-top" id="hubTop" href="../paul/"><span aria-hidden="true">📌</span> All my posts</a>
+
   <div class="step">Quick share</div>
   <div class="card">
     <button id="shareBtn" type="button" class="share loading mob-only" data-share="0" disabled data-ready="📤&nbsp; Share Post">⏳&nbsp; Loading pictures…</button>
     <p class="hint mob-only">Copies the caption and opens your share menu with all 5 pictures. Pick Instagram, Facebook or LinkedIn, then paste the caption.</p>
     <p class="hint tip mob-only">On Android, tap Save all, then pick the photos in Instagram.</p>
     <a class="btn post desk-only" id="quickPostIG0" data-post="ig" data-cap="0" data-status="postStatus" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="currentColor" opacity=".18"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.2" cy="7.8" r="1.1" fill="currentColor"/></svg>Post on Instagram</a>
+    <p class="hint desk-only ig-crop-tip">📐 In Instagram, click the crop icon and choose <b>Original</b> so nothing gets cut off.</p>
     <a class="btn post desk-only" id="quickPostFB0" data-post="fb" data-cap="0" data-status="postStatus" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg>Post on Facebook</a>
     <a class="btn post desk-only" id="quickPostLI0" data-post="li" data-cap="0" data-status="postStatus" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg>Post on LinkedIn</a>
-    <p class="hint desk-only">Each button copies the caption, downloads all 5 pictures in one ZIP file, and opens the site in a new tab (on Instagram, click <b>+ Create</b>). Start a post, paste the caption, and attach the pictures.</p>
+    <p class="desk-only li-note" id="liNotequickPostLI0" role="status" aria-live="polite" hidden></p>
+    <p class="hint desk-only">Each button copies the caption, downloads all 5 pictures in one ZIP file, and opens the site in a new tab (on Instagram, click <b>+ Create</b>). Start a post, paste the caption, and attach the pictures. On LinkedIn the caption is filled in for you without links, and the short link is copied so you can paste it as the first comment.</p>
     <p class="hint desk-only poststatus" id="postStatus" role="status" aria-live="polite"></p>
   </div>
 
@@ -267,7 +278,7 @@ Criterion-RealEstate.com
 <textarea id="fallbackTA" readonly aria-hidden="true" tabindex="-1" style="position:fixed;top:0;left:-9999px;opacity:0;font-size:16px"></textarea>
 <script>
 (function(){
-  var CAPTIONS = [{"label": "Caption", "text": "Myth or fact? Better call Paul!\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nWant a clearer picture of your own home's value? Scan the QR code on the last slide, or visit tinyurl.com/CriterionPaulOnline, and I'll put one together for you.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #CriterionRealEstate #RealEstateMyths #HomeValue #HomeBuying #HomeSelling"}];
+  var CAPTIONS = [{"label": "Caption", "text": "Myth or fact? Better call Paul!\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nWant a clearer picture of your own home's value? Scan the QR code on the last slide, or visit tinyurl.com/CriterionPaulOnline, and I'll put one together for you.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #CriterionRealEstate #RealEstateMyths #HomeValue #HomeBuying #HomeSelling", "li_text": "Myth or fact? Better call Paul!\n\nMyth: You need 20% down to buy a home.\nFact: Not always. Some loan programs allow a smaller down payment for buyers who qualify. Talk to a lender about your options.\n\nMyth: The highest offer always wins.\nFact: Not necessarily. Price matters, but so do terms and timing.\n\nMyth: Online home value estimates are exact.\nFact: They're a starting point only. A local agent can give you a clearer picture.\n\nWant a clearer picture of your own home's value? Scan the QR code on the last slide, or visit the link in the first comment, and I'll put one together for you.\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\n\n#BetterCallPaul #CriterionRealEstate #RealEstateMyths #HomeValue #HomeBuying #HomeSelling", "short_link": "https://tinyurl.com/CriterionPaulOnline"}];
   var IMAGES = [{"src": "Myth-vs-Fact-QR-1.png", "name": "Myth-vs-Fact-QR-1.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-2.png", "name": "Myth-vs-Fact-QR-2.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-3.png", "name": "Myth-vs-Fact-QR-3.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-4.png", "name": "Myth-vs-Fact-QR-4.png", "type": "image/png"}, {"src": "Myth-vs-Fact-QR-5.png", "name": "Myth-vs-Fact-QR-5.png", "type": "image/png"}];
   var ZIP = {"src": "Myth-vs-Fact-QR-pictures.zip", "name": "Myth-vs-Fact-QR-pictures.zip"};   // multi-picture pages: one prebuilt ZIP of every picture (computers download this, not N files)
   function downloadZip(){ var a = document.createElement("a"); a.href = ZIP.src; a.download = ZIP.name; a.rel = "noopener";
@@ -422,15 +433,21 @@ Criterion-RealEstate.com
   var COMPOSER = {
     ig: function(){ return "https://www.instagram.com/"; },
     fb: function(){ return "https://www.facebook.com/"; },
-    li: function(t){ return "https://www.linkedin.com/feed/?shareActive=true&text=" + encodeURIComponent(t); }
+    li: function(t){ return "https://www.linkedin.com/feed/?shareActive=true&text=" + encodeURIComponent(t); }   // t = caption with links removed
   };
   var SITE = {ig: "Instagram", fb: "Facebook", li: "LinkedIn"};
+  var SHORT_NOTE = "Short link copied. After you post, paste it as the first comment.";
   Array.prototype.forEach.call(document.querySelectorAll("[data-post]"), function(a){
     var net = a.getAttribute("data-post"), k = parseInt(a.getAttribute("data-cap"), 10) || 0;
     var text = CAPTIONS[k].text, n = IMAGES.length;
+    // LinkedIn: prefill the caption WITHOUT web links (a link makes LinkedIn build a preview card that blocks pictures);
+    // the clipboard gets the short link instead, to paste as the first comment.
+    var short = (net === "li" && CAPTIONS[k].short_link) || "";
+    if (net === "li" && typeof CAPTIONS[k].li_text === "string") text = CAPTIONS[k].li_text;
+    var clip = short || text;
     a.href = COMPOSER[net](text);
     a.addEventListener("click", function(){
-      var copied = legacyCopy(text) ? Promise.resolve(true) : copyNow(text);   // 1) copy inside the click
+      var copied = legacyCopy(clip) ? Promise.resolve(true) : copyNow(clip);   // 1) copy inside the click
       // 2) download synchronously, before the new tab opens: one ZIP for several pictures, else the single picture
       if (ZIP && n > 1) downloadZip(); else download(0);
       var multi = !!(ZIP && n > 1), them = n > 1 ? "images" : "image";
@@ -442,10 +459,18 @@ Criterion-RealEstate.com
                      : pic.charAt(0).toUpperCase() + pic.slice(1) + ". The caption is selected above: copy it, then paste it in the post.";
         if (net === "ig") msg = ok ? "Caption copied and " + pic + ". " + unzip + (unzip ? "click" : "Click") + " + Create, attach the " + them + ", and paste the caption."
                                    : msg + " On Instagram, click + Create and attach the " + them + ".";
-        if (!ok) selectCaption("caption" + (k ? k : ""));
-        toast(msg, 7000);
+        if (short) {
+          var picLi = pic.charAt(0).toUpperCase() + pic.slice(1);
+          msg = ok ? SHORT_NOTE + " (" + short + ") " + picLi + ". " + unzip + (unzip ? "attach" : "Attach") + " the " + them + "; the caption is already filled in."
+                   : picLi + ". Copy this short link: " + short + " \u2014 after you post, paste it as the first comment.";
+          var note = document.getElementById("liNote" + a.id);
+          if (note) { note.innerHTML = "\uD83D\uDD17 <b>" + (ok ? SHORT_NOTE : "Copy the short link below.") + "</b><br><span class=\"li-link\"></span>";
+            note.querySelector(".li-link").textContent = short; note.hidden = false; }
+        }
+        if (!ok && !short) selectCaption("caption" + (k ? k : ""));
+        toast(short && ok ? SHORT_NOTE : msg, short ? 9000 : 7000);
         if (status) status.textContent = "✅ " + msg + " " + SITE[net] + " opened in a new tab.";
-        flash(a, ok ? "✅&nbsp; Copied &amp; downloaded" : "✅&nbsp; Downloaded");
+        flash(a, ok ? (short ? "✅&nbsp; Link copied &amp; downloaded" : "✅&nbsp; Copied &amp; downloaded") : "✅&nbsp; Downloaded");
       });
       // 3) default action: open the composer in a new tab (no preventDefault)
     });
