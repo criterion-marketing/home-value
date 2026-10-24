@@ -176,6 +176,10 @@
   .pp-m{display:block;margin-top:4px;font-size:14px;color:#B9AEDB}
   .pp-tag{display:inline-block;margin-top:7px;padding:3px 9px;border-radius:999px;background:var(--pp);color:#fff;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
   .pp-go{flex:0 0 auto;color:var(--ppl);font-size:26px;line-height:1;padding-right:4px}
+  a.pp-hub{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0 0;min-height:44px;padding:10px 16px;border-radius:999px;
+    background:var(--pp);color:#fff;text-decoration:none;font-size:15px;font-weight:700;-webkit-tap-highlight-color:transparent}
+  a.pp-hub:hover{background:#6D28D9}
+  a.pp-hub:focus-visible{outline:2px solid #fff;outline-offset:2px}
   .pp-empty{padding:22px;font-size:16px;color:#C9BEF0;text-align:center}
   @media (min-width:720px){#pp-bar{padding-left:28px;padding-right:22px}}
   @media (prefers-reduced-motion:reduce){#pp-drawer,#pp-scrim{transition:none}}
@@ -546,7 +550,7 @@ Criterion-RealEstate.com
 <div id="pp-scrim" hidden></div>
 <aside id="pp-drawer" role="dialog" aria-modal="true" aria-labelledby="pp-h" aria-hidden="true">
   <div class="pp-head">
-    <div><h2 id="pp-h">Past Posts</h2><p>Tap any post to open it and share it again.</p></div>
+    <div><h2 id="pp-h">Past Posts</h2><p>Tap any post to open it and share it again.</p><a class="pp-hub" id="pp-hub" href="../paul/"><span aria-hidden="true">📌</span> All my posts · newest first</a></div>
     <button type="button" class="pp-x" id="pp-close" aria-label="Close">&#x2715;</button>
   </div>
   <ul class="pp-list" id="pp-list"><li class="pp-empty">Loading your posts…</li></ul>
@@ -554,7 +558,7 @@ Criterion-RealEstate.com
 </div>
 <script>
 (function(){
-  var NAME = "paul", SELF = "ozmQvYq1snWmlIUvWz2IUw", SNAPSHOT = {"owner": "Paul Durante", "updated": "Oct 24, 2026", "posts": [{"slug": "a5xe94SPOck102pX5QfdyQ", "title": "3 Signs It's Time to Sell + QR", "date": "Oct 22, 2026", "thumb": "thumbs/a5xe94SPOck102pX5QfdyQ.jpg", "count": 5}, {"slug": "WPO1nvlXdC6rsmL6k0lsUQ", "title": "Ready to Stop Renting + QR", "date": "Oct 22, 2026", "thumb": "thumbs/WPO1nvlXdC6rsmL6k0lsUQ.jpg", "count": 1}, {"slug": "fFwuDJZ87lZWdQyhU6eXqQ", "title": "Myth vs. Fact + QR", "date": "Oct 22, 2026", "thumb": "thumbs/fFwuDJZ87lZWdQyhU6eXqQ.jpg", "count": 5}, {"slug": "2thBxZfEGHujWEX3SYPxgQ", "title": "Seller Checklist + QR", "date": "Oct 22, 2026", "thumb": "thumbs/2thBxZfEGHujWEX3SYPxgQ.jpg", "count": 4}, {"slug": "TKOmFZiWMyxgDJdV3MSD4g", "title": "Better Call Paul + QR", "date": "Oct 22, 2026", "thumb": "thumbs/TKOmFZiWMyxgDJdV3MSD4g.jpg", "count": 1}, {"slug": "NvDVVyVHHK5aDi3NhlqqEg", "title": "Better Call Paul (Square) + QR", "date": "Oct 22, 2026", "thumb": "thumbs/NvDVVyVHHK5aDi3NhlqqEg.jpg", "count": 1}, {"slug": "ozmQvYq1snWmlIUvWz2IUw", "title": "3 Signs It's Time to Sell", "date": "Oct 21, 2026", "thumb": "thumbs/ozmQvYq1snWmlIUvWz2IUw.jpg", "count": 5}, {"slug": "RT6EqaGma9sNBMNmm6H6ig", "title": "Ready to Stop Renting", "date": "Oct 21, 2026", "thumb": "thumbs/RT6EqaGma9sNBMNmm6H6ig.jpg", "count": 1}, {"slug": "0WDKy3g8P7U10mj87eUYKw", "title": "Myth vs. Fact", "date": "Oct 21, 2026", "thumb": "thumbs/0WDKy3g8P7U10mj87eUYKw.jpg", "count": 5}, {"slug": "1GPSSxWaHkHK1blD9YCLIQ", "title": "Seller Checklist", "date": "Oct 21, 2026", "thumb": "thumbs/1GPSSxWaHkHK1blD9YCLIQ.jpg", "count": 4}, {"slug": "vezPTXiPpT21GaQzem8HAw", "title": "Better Call Paul", "date": "Oct 21, 2026", "thumb": "thumbs/vezPTXiPpT21GaQzem8HAw.jpg", "count": 2}]};
+  var NAME = "paul", SELF = "ozmQvYq1snWmlIUvWz2IUw", SNAPSHOT = {"owner": "Paul Durante", "updated": "Oct 24, 2026", "posts": [{"slug": "B5ugmsCAUQv1pv80uHcMXw", "title": "3 Signs It's Time to Sell (Refreshed)", "date": "Oct 24, 2026", "thumb": "thumbs/B5ugmsCAUQv1pv80uHcMXw.jpg", "count": 5}, {"slug": "a5xe94SPOck102pX5QfdyQ", "title": "3 Signs It's Time to Sell + QR", "date": "Oct 22, 2026", "thumb": "thumbs/a5xe94SPOck102pX5QfdyQ.jpg", "count": 5}, {"slug": "WPO1nvlXdC6rsmL6k0lsUQ", "title": "Ready to Stop Renting + QR", "date": "Oct 22, 2026", "thumb": "thumbs/WPO1nvlXdC6rsmL6k0lsUQ.jpg", "count": 1}, {"slug": "fFwuDJZ87lZWdQyhU6eXqQ", "title": "Myth vs. Fact + QR", "date": "Oct 22, 2026", "thumb": "thumbs/fFwuDJZ87lZWdQyhU6eXqQ.jpg", "count": 5}, {"slug": "2thBxZfEGHujWEX3SYPxgQ", "title": "Seller Checklist + QR", "date": "Oct 22, 2026", "thumb": "thumbs/2thBxZfEGHujWEX3SYPxgQ.jpg", "count": 4}, {"slug": "TKOmFZiWMyxgDJdV3MSD4g", "title": "Better Call Paul + QR", "date": "Oct 22, 2026", "thumb": "thumbs/TKOmFZiWMyxgDJdV3MSD4g.jpg", "count": 1}, {"slug": "NvDVVyVHHK5aDi3NhlqqEg", "title": "Better Call Paul (Square) + QR", "date": "Oct 22, 2026", "thumb": "thumbs/NvDVVyVHHK5aDi3NhlqqEg.jpg", "count": 1}, {"slug": "ozmQvYq1snWmlIUvWz2IUw", "title": "3 Signs It's Time to Sell", "date": "Oct 21, 2026", "thumb": "thumbs/ozmQvYq1snWmlIUvWz2IUw.jpg", "count": 5}, {"slug": "RT6EqaGma9sNBMNmm6H6ig", "title": "Ready to Stop Renting", "date": "Oct 21, 2026", "thumb": "thumbs/RT6EqaGma9sNBMNmm6H6ig.jpg", "count": 1}, {"slug": "0WDKy3g8P7U10mj87eUYKw", "title": "Myth vs. Fact", "date": "Oct 21, 2026", "thumb": "thumbs/0WDKy3g8P7U10mj87eUYKw.jpg", "count": 5}, {"slug": "1GPSSxWaHkHK1blD9YCLIQ", "title": "Seller Checklist", "date": "Oct 21, 2026", "thumb": "thumbs/1GPSSxWaHkHK1blD9YCLIQ.jpg", "count": 4}, {"slug": "vezPTXiPpT21GaQzem8HAw", "title": "Better Call Paul", "date": "Oct 21, 2026", "thumb": "thumbs/vezPTXiPpT21GaQzem8HAw.jpg", "count": 2}]};
   var BASE = "../catalog/", html = document.documentElement;
   var btn = document.getElementById("pp-open"), closeBtn = document.getElementById("pp-close");
   var drawer = document.getElementById("pp-drawer"), scrim = document.getElementById("pp-scrim");

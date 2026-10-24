@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#2E1065">
+<title>Paul&#x27;s Posts · Paul Durante</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="Paul&#x27;s Posts">
+<meta name="application-name" content="Paul&#x27;s Posts">
+<script id="device-detect">
+(function(){
+  var h = document.documentElement, n = navigator, ua = n.userAgent || "", m = false;
+  try { if (n.userAgentData && n.userAgentData.mobile) m = true; } catch(e){}
+  if (/iPhone|iPad|iPod|Android|Mobi|Kindle|Silk|BlackBerry|Opera Mini|IEMobile/i.test(ua)) m = true;
+  if (/Mac/.test(n.platform || "") && n.maxTouchPoints > 1) m = true;
+  try { if (matchMedia("(pointer: coarse)").matches && matchMedia("(hover: none)").matches) m = true; } catch(e){}
+  var v = (location.search.match(/[?&]view=(desktop|mobile)/) || [])[1]; if (v) m = v === "mobile";
+  h.className += m ? " is-mobile" : " is-desktop";
+  window.CRIT_IS_MOBILE = m;
+})();
+</script>
+<style>
+  @font-face{font-family:"PP DM Serif";src:url("../catalog/fonts/dmserif.woff2") format("woff2");font-display:swap}
+  @font-face{font-family:"PP Inter";src:url("../catalog/fonts/inter.woff2") format("woff2");font-weight:400 700;font-display:swap}
+  :root{--p:#7C3AED;--pd:#5B21B6;--pl:#A78BFA;--bg:#F6F3FF;--ink:#0A0A0A;--mut:#5B5470;--card:#fff;--line:#E9E1FF}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.45 "PP Inter",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{background:linear-gradient(135deg,#0A0A0A 0%,#2E1065 60%,var(--p) 100%);color:#fff;
+    padding:max(22px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 26px max(20px,env(safe-area-inset-left));text-align:center}
+  header img{height:38px;width:auto;display:block;margin:0 auto 12px}
+  header h1{margin:0;font-family:"PP DM Serif","DM Serif Display",Georgia,serif;font-weight:400;font-size:32px;line-height:1.1}
+  header p{margin:6px 0 0;font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#D8CCFF}
+  main{max-width:1040px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-right)) max(36px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+  .hint{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:10px 12px 10px 14px;border-radius:14px;background:#EDE6FF;border:1.5px solid #D9CCFF;color:#3B1D7A;font-size:15px;line-height:1.35}
+  .hint b{color:#2E1065}
+  .hint .hx{all:unset;cursor:pointer;margin-left:auto;flex:0 0 auto;width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#5B21B6}
+  .hint .hx:hover{background:rgba(124,58,237,.12)}
+  .hint .hx:focus-visible{outline:2px solid var(--p)}
+  h2.sec{margin:6px 2px 12px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pd)}
+  .hero{display:flex;flex-direction:column;background:var(--card);border-radius:22px;overflow:hidden;box-shadow:0 4px 22px rgba(46,16,101,.14);border:2px solid var(--p);margin-bottom:26px}
+  .hero .ph{position:relative;display:block;background:#1C1530;aspect-ratio:4/5;max-height:70vh}
+  .hero .ph img{display:block;width:100%;height:100%;object-fit:contain;background:#1C1530}
+  .hero .bd{padding:18px 18px 20px}
+  .hero h3{margin:0;font-family:"PP DM Serif","DM Serif Display",Georgia,serif;font-weight:400;font-size:30px;line-height:1.15}
+  .meta{margin:6px 0 0;color:var(--mut);font-size:16px}
+  .go{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;min-height:66px;padding:14px 18px;border-radius:16px;
+    background:linear-gradient(135deg,#5B21B6 0%,var(--p) 100%);color:#fff;text-decoration:none;font-weight:700;font-size:22px;box-shadow:0 4px 0 #3B1D7A;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .go:hover{filter:brightness(1.08)}
+  .go:active{transform:translateY(2px);box-shadow:0 2px 0 #3B1D7A}
+  .go:focus-visible{outline:3px solid #fff;outline-offset:-6px}
+  .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#16A34A;color:#fff;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1.2;vertical-align:middle}
+  .ph .badge{position:absolute;top:12px;left:12px;font-size:14px;padding:6px 12px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .grid a{display:flex;flex-direction:column;height:100%;background:var(--card);border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;
+    border:1.5px solid var(--line);box-shadow:0 2px 10px rgba(46,16,101,.08);-webkit-tap-highlight-color:transparent;transition:border-color .15s,transform .15s}
+  .grid a:hover{border-color:var(--pl);transform:translateY(-2px)}
+  .grid a:focus-visible{outline:3px solid var(--p);outline-offset:2px}
+  .grid .th{position:relative;aspect-ratio:4/5;background:#1C1530}
+  .grid .th img{display:block;width:100%;height:100%;object-fit:cover}
+  .grid .th .badge{position:absolute;top:8px;left:8px}
+  .grid .tx{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+  .grid .t{font-weight:700;font-size:16px;line-height:1.25}
+  .grid .m{font-size:13px;color:var(--mut)}
+  .grid .o{margin-top:auto;padding-top:6px;font-size:14px;font-weight:700;color:var(--pd)}
+  .msg{background:var(--card);border-radius:18px;padding:26px 20px;text-align:center;box-shadow:0 2px 14px rgba(46,16,101,.10)}
+  .msg p{margin:0 0 14px;font-size:18px}
+  .msg button,.warn button{all:unset;cursor:pointer;display:inline-block;padding:12px 22px;border-radius:14px;background:var(--p);color:#fff;font-weight:700;font-size:18px}
+  .msg button:focus-visible,.warn button:focus-visible{outline:3px solid var(--pd);outline-offset:2px}
+  .warn{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:10px 14px;border-radius:14px;background:#FFF7E6;border:1.5px solid #F5D08A;color:#7A4B00;font-size:15px}
+  .warn button{padding:8px 16px;font-size:15px}
+  .sk{background:linear-gradient(90deg,#EEE8FF 0%,#F8F5FF 50%,#EEE8FF 100%);background-size:200% 100%;animation:sk 1.2s linear infinite;border-radius:22px;height:420px}
+  @keyframes sk{to{background-position:-200% 0}}
+  footer{margin-top:28px;text-align:center;font-size:13px;color:var(--mut)}
+  .ios-only,.and-only,.desk-only,.mob-only{display:none}
+  html.is-ios .ios-only,html.is-and .and-only{display:inline}
+  html.is-desktop .desk-only{display:inline}
+  @media (min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media (min-width:860px){
+    main{padding-top:26px}
+    .hero{flex-direction:row;align-items:stretch}
+    .hero .ph{flex:0 0 46%;aspect-ratio:4/5;max-height:none}
+    .hero .bd{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px}
+    .hero h3{font-size:40px}
+    .go{align-self:flex-start;min-width:280px}
+    .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0F0B1A;--ink:#F4F1FF;--mut:#B9AEDB;--card:#1C1C1F;--line:#2E2442}
+    .hint{background:#1E1636;border-color:#3B2A66;color:#D8CCFF}.hint b{color:#fff}.hint .hx{color:var(--pl)}
+    h2.sec{color:var(--pl)}.grid .o{color:var(--pl)}
+    .warn{background:#2A2110;border-color:#6B5216;color:#F5D08A}
+    .sk{background:linear-gradient(90deg,#1C1530 0%,#2A2142 50%,#1C1530 100%);background-size:200% 100%}
+  }
+  @media (prefers-reduced-motion:reduce){.sk{animation:none}.grid a{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <img src="logo-white.png" alt="Criterion Real Estate" width="560" height="128">
+  <h1>Paul Durante</h1>
+  <p>Criterion Real Estate · My Posts</p>
+</header>
+<main>
+  <div class="hint" id="bm" hidden>
+    <span aria-hidden="true">📌</span>
+    <span>
+      <span class="ios-only">Save this page: tap <b>Share</b> <span aria-hidden="true">⬆︎</span> then <b>Add to Home Screen</b>. Your newest post is always on top.</span>
+      <span class="and-only">Save this page: tap <b>⋮</b> then <b>Add to Home screen</b>. Your newest post is always on top.</span>
+      <span class="desk-only">Bookmark this page: press <b id="bm-key">Ctrl+D</b>. Your newest post is always on top.</span>
+    </span>
+    <button type="button" class="hx" id="bm-x" aria-label="Hide this tip">✕</button>
+  </div>
+  <div id="warn"></div>
+  <div id="app" aria-live="polite"><div class="sk" aria-label="Loading your posts"></div></div>
+  <footer>Posts are private links. Please don’t share this page itself.</footer>
+</main>
+<script>
+(function(){
+  var NAME = "paul", CAT = "../catalog/", LSKEY = "hub-cache-" + NAME;
+  var html = document.documentElement, app = document.getElementById("app"), warn = document.getElementById("warn");
+  var ua = navigator.userAgent || "";
+  var isIOS = /iPhone|iPad|iPod/.test(ua) || (/Mac/.test(navigator.platform || "") && navigator.maxTouchPoints > 1);
+  var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  html.classList.add(window.CRIT_IS_MOBILE ? (isIOS ? "is-ios" : "is-and") : "is-dt");
+  // Bookmark tip
+  var bm = document.getElementById("bm");
+  try {
+    if (!standalone && localStorage.getItem("hub-tip-off") !== "1") bm.hidden = false;
+  } catch(e){ if (!standalone) bm.hidden = false; }
+  if (/Mac/.test(navigator.platform || "")) document.getElementById("bm-key").textContent = "\u2318+D";
+  document.getElementById("bm-x").addEventListener("click", function(){ bm.hidden = true; try { localStorage.setItem("hub-tip-off", "1"); } catch(e){} });
+
+  var MON = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  function postTime(p){            // ms timestamp of the post: optional ISO 'added', else the 'Oct 24, 2026' date label (local)
+    if (p.added){ var t = Date.parse(p.added); if (!isNaN(t)) return t; }
+    var m = /^([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2}),?\s+(\d{4})/.exec(p.date || "");
+    if (!m || !(m[1].toLowerCase() in MON)) return NaN;
+    return new Date(+m[3], MON[m[1].toLowerCase()], +m[2]).getTime();
+  }
+  function isNew(p){               // 'New' = added in the last 48 h; date-only labels count today and yesterday
+    var t = postTime(p); if (isNaN(t)) return false;
+    var now = new Date();
+    if (p.added) return now - t < 48 * 3600e3 && now - t > -3600e3;
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return t >= today - 864e5 && t <= today + 864e5;
+  }
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function href(p){ return "../" + encodeURIComponent(p.slug) + "/"; }
+  function thumb(p){ var i = el("img"); i.src = CAT + p.thumb; i.alt = ""; i.decoding = "async"; return i; }
+  function metaText(p){ var n = p.count || 1; return (p.date || "") + " · " + n + (n === 1 ? " picture" : " pictures"); }
+
+  function render(data){
+    var posts = ((data && data.posts) || []).filter(function(p){ return p && p.slug && p.title; });
+    app.innerHTML = "";
+    if (!posts.length){ var m = el("div", "msg"); m.appendChild(el("p", null, "No posts yet. New posts will show up here.")); app.appendChild(m); return; }
+    var top = posts[0], rest = posts.slice(1);
+    app.appendChild(el("h2", "sec", "Newest post"));
+    var hero = el("article", "hero"); hero.id = "newest"; hero.setAttribute("data-slug", top.slug);
+    var ph = el("a", "ph"); ph.href = href(top); ph.setAttribute("aria-label", top.title); ph.tabIndex = -1;
+    var ti = thumb(top); ti.loading = "eager"; ph.appendChild(ti);
+    if (isNew(top)) ph.appendChild(el("span", "badge", "New"));
+    hero.appendChild(ph);
+    var bd = el("div", "bd"); bd.appendChild(el("h3", null, top.title)); bd.appendChild(el("p", "meta", metaText(top)));
+    var go = el("a", "go"); go.href = href(top); go.id = "open-newest"; go.textContent = "Open & Share \u2192";
+    bd.appendChild(go); hero.appendChild(bd); app.appendChild(hero);
+    if (rest.length){
+      app.appendChild(el("h2", "sec", "Earlier posts"));
+      var ul = el("ul", "grid"); ul.id = "earlier";
+      rest.forEach(function(p){
+        var li = el("li"), a = el("a"); a.href = href(p); a.setAttribute("data-slug", p.slug);
+        var th = el("div", "th"), im = thumb(p); im.loading = "lazy"; th.appendChild(im);
+        if (isNew(p)) th.appendChild(el("span", "badge", "New"));
+        a.appendChild(th);
+        var tx = el("div", "tx"); tx.appendChild(el("span", "t", p.title)); tx.appendChild(el("span", "m", metaText(p)));
+        tx.appendChild(el("span", "o", "Open & Share \u203A")); a.appendChild(tx);
+        li.appendChild(a); ul.appendChild(li);
+      });
+      app.appendChild(ul);
+    }
+  }
+  function showError(haveCache){
+    warn.innerHTML = "";
+    if (haveCache){
+      var w = el("div", "warn"); w.appendChild(el("span", null, "Couldn\u2019t check for new posts. Showing the last list we loaded."));
+      var b = el("button", null, "Try again"); b.type = "button"; b.addEventListener("click", load); w.appendChild(b); warn.appendChild(w);
+      return;
+    }
+    app.innerHTML = "";
+    var m = el("div", "msg"); m.id = "err";
+    m.appendChild(el("p", null, "We couldn\u2019t load your posts just now. Check your connection and try again."));
+    var b2 = el("button", null, "Try again"); b2.type = "button"; b2.addEventListener("click", function(){ app.innerHTML = '<div class="sk"></div>'; load(); });
+    m.appendChild(b2); app.appendChild(m);
+  }
+  var cached = null, lastLoad = 0, busy = false;
+  try { cached = JSON.parse(localStorage.getItem(LSKEY) || "null"); } catch(e){}
+  if (cached) render(cached);
+  function load(){
+    if (busy) return; busy = true; lastLoad = Date.now();
+    fetch(CAT + encodeURIComponent(NAME) + ".json?t=" + Date.now(), {cache: "no-store"})
+      .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function(d){
+        busy = false; warn.innerHTML = ""; cached = d; render(d);
+        try { localStorage.setItem(LSKEY, JSON.stringify(d)); } catch(e){}
+      }, function(){ busy = false; showError(!!cached); });
+  }
+  load();
+  // Re-check when the page comes back to the foreground (home-screen icon, back button, switching tabs).
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden && Date.now() - lastLoad > 30000) load(); });
+  window.addEventListener("pageshow", function(e){ if (e.persisted) load(); });
+})();
+</script>
+</body>
+</html>
