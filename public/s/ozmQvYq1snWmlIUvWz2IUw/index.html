@@ -25,6 +25,10 @@
     box-shadow:0 4px 0 var(--pd);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   button:active,.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--pd)}
   button.secondary{background:#fff;color:var(--pd);border:3px solid var(--p);box-shadow:none;min-height:60px;font-size:20px;margin-top:12px}
+  button.share{background:linear-gradient(135deg,#5B21B6 0%,var(--p) 100%);min-height:72px;font-size:23px}
+  button.share:disabled{opacity:.6;cursor:wait;box-shadow:none;transform:none}
+  .hint.tip{font-size:15px;margin-top:6px}
+  button.share.secondary{background:#fff;min-height:60px;font-size:20px}
   button.done{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important;box-shadow:0 4px 0 #14532D}
   .hint{font-size:16px;color:#555;margin:10px 4px 0;text-align:center}
   .num{font-size:16px;color:#666;margin:0 0 8px;font-weight:600}
@@ -35,7 +39,7 @@
   @media (prefers-color-scheme:dark){
     body{background:#0F0B1A;color:#F4F1FF}.card{background:#1C1C1F;box-shadow:none}
     .caption{background:#151219;border-color:#3B2A66;color:#F4F1FF}.hint,.num,footer{color:#BBB}
-    button.secondary{background:#1C1C1F;color:var(--pl);border-color:var(--pl)}.step{color:var(--pl)}
+    button.secondary,button.share.secondary{background:#1C1C1F;color:var(--pl);border-color:var(--pl)}.step{color:var(--pl)}
   }
 </style>
 <style id="pp-style">
@@ -105,6 +109,14 @@
   <h1>3 Signs It&#x27;s Time to Sell</h1>
 </header>
 <main>
+  <div class="step">Quick share</div>
+  <div class="card">
+    <button id="shareBtn" type="button" class="share loading" data-share="0" disabled data-ready="📤&nbsp; Share Post">⏳&nbsp; Loading pictures…</button>
+    <p class="hint">Copies the Instagram caption (each app below has its own Share button too) and opens your share menu with all 5 pictures. Pick Instagram, Facebook or LinkedIn, then paste the caption.</p>
+    <p class="hint tip">On Android, tap Save all, then pick the photos in Instagram.</p>
+  </div>
+  <p class="hint" style="margin:18px 4px 0">Or do it step by step:</p>
+
   <div class="step">Step 1 · Pick where you're posting</div>
   <p class="hint" style="text-align:left;margin-top:0">Each app gets its own caption. Copy the one that matches where you're posting.</p>
   <div class="card">
@@ -125,6 +137,7 @@ Criterion-RealEstate.com
 
 #BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #ThinkingOfSelling #SellYourHome</div>
     <button id="copyBtn0" type="button" data-copy="0">📋&nbsp; Copy Instagram Caption</button>
+    <button id="shareBtn0" type="button" class="share secondary loading" data-share="0" disabled data-ready="📤&nbsp; Share to Instagram">⏳&nbsp; Loading pictures…</button>
     <p class="hint">Then open Instagram, tap where you type the caption, and choose <b>Paste</b>.</p>
   </div>
   <div class="card">
@@ -145,6 +158,7 @@ Criterion-RealEstate.com
 
 #BetterCallPaul #CriterionRealEstate</div>
     <button id="copyBtn1" type="button" data-copy="1">📋&nbsp; Copy Facebook Caption</button>
+    <button id="shareBtn1" type="button" class="share secondary loading" data-share="1" disabled data-ready="📤&nbsp; Share to Facebook">⏳&nbsp; Loading pictures…</button>
     <p class="hint">Then open Facebook, start a post, add the pictures, tap where you type, and choose <b>Paste</b>.</p>
   </div>
   <div class="card">
@@ -165,6 +179,7 @@ Criterion-RealEstate.com
 
 #BetterCallPaul #RealEstate #HomeSelling #CriterionRealEstate</div>
     <button id="copyBtn2" type="button" data-copy="2">📋&nbsp; Copy LinkedIn Caption</button>
+    <button id="shareBtn2" type="button" class="share secondary loading" data-share="2" disabled data-ready="📤&nbsp; Share to LinkedIn">⏳&nbsp; Loading pictures…</button>
     <p class="hint">Then open LinkedIn, start a post, add the PDF as a <b>document</b> (or add the pictures), and <b>Paste</b> this as the text.</p>
   </div>
 
@@ -265,6 +280,68 @@ Criterion-RealEstate.com
   });
   var allBtn = document.getElementById("saveAll");
   if (allBtn) allBtn.addEventListener("click", function(){ shareOrDownload(IMAGES.map(function(_, i){ return i; }), allBtn); });
+
+  // ---------- Share (copy caption + native share sheet with the picture(s)) ----------
+  // Order matters on iOS: the copy starts and navigator.share() is called in the same tap, with no await in between.
+  // The pictures are prefetched on load (above), so no network wait happens inside the tap.
+  var SHARE_TOAST = "Caption copied. Paste it in your post.";
+  function copyNow(text){
+    // Start the copy inside the tap. Returns a promise that resolves true/false.
+    if (navigator.clipboard && window.isSecureContext) {
+      try { return navigator.clipboard.writeText(text).then(function(){ return true; }, function(){ return legacyCopy(text); }); }
+      catch(e){ return Promise.resolve(legacyCopy(text)); }
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+  function pickShareFiles(){
+    var all = files.filter(function(f){ return f; });
+    if (all.length !== IMAGES.length || !navigator.share || !navigator.canShare) return null;
+    all = all.slice(0, 10);                             // share sheets / Instagram take at most 10
+    try { if (all.length > 1 && navigator.canShare({files: all})) return all; } catch(e){}
+    try { if (navigator.canShare({files: [all[0]]})) return [all[0]]; } catch(e){}
+    return null;
+  }
+  function shareFallback(copied, k){
+    // No file sharing (desktop, old phones): download the picture(s) and keep the caption on the clipboard.
+    var idxs = IMAGES.map(function(_, i){ return i; });
+    if (isMobile && /iPhone|iPad|iPod/i.test(ua)) { window.open(IMAGES[0].src, "_blank"); }
+    else { idxs.forEach(function(i, n){ setTimeout(function(){ download(i); }, n * 700); }); }
+    copied.then(function(ok){
+      if (ok) toast(SHARE_TOAST + (idxs.length > 1 ? " Pictures downloading…" : " Picture downloading…"));
+      else { selectCaption("caption" + (k ? k : "")); toast("Caption is selected — tap Copy, then paste it in your post."); }
+    });
+  }
+  function sharePost(k, btn){
+    var text = CAPTIONS[k].text;
+    var copied = copyNow(text);                        // 1) copy first, inside the tap
+    var list = pickShareFiles();
+    if (list) {                                         // 2) open the share sheet right away (same tap)
+      var p;
+      try { p = navigator.share({files: list}); } catch(e){ p = Promise.reject(e); }
+      copied.then(function(ok){ toast(ok ? SHARE_TOAST : "Shared. Tap Copy Caption, then paste it in your post."); });
+      Promise.resolve(p).then(function(){ flash(btn, "✅&nbsp; Shared!"); copied.then(function(ok){ if (ok) toast(SHARE_TOAST); }); }, function(err){
+        if (err && err.name === "AbortError") { copied.then(function(ok){ if (ok) toast(SHARE_TOAST); }); return; } // sheet closed; caption still copied
+        if (err && err.name === "NotAllowedError") { toast("Tap Share again."); return; }
+        shareFallback(copied, k);
+      });
+      return;
+    }
+    var stillLoading = files.some(function(f){ return !f; }) && navigator.share && navigator.canShare;
+    if (stillLoading) {
+      copied.then(function(ok){ toast((ok ? "Caption copied. " : "") + "Pictures loading… tap Share again."); });
+      Promise.all(IMAGES.map(function(_, i){ return load(i); })).then(function(){ toast("Ready — tap Share again."); }, function(){});
+      return;
+    }
+    shareFallback(copied, k);
+  }
+  var shareBtns = Array.prototype.slice.call(document.querySelectorAll("[data-share]"));
+  shareBtns.forEach(function(btn){
+    btn.addEventListener("click", function(){ if (!btn.disabled) sharePost(parseInt(btn.getAttribute("data-share"), 10), btn); });
+  });
+  // Buttons start disabled ("Loading pictures…") and turn on once every picture is preloaded as a File.
+  // If a picture can't load, they still turn on and use the download fallback.
+  function enableShare(){ shareBtns.forEach(function(btn){ btn.disabled = false; btn.innerHTML = btn.getAttribute("data-ready"); btn.classList.remove("loading"); }); }
+  Promise.all(IMAGES.map(function(_, i){ return load(i); })).then(enableShare, enableShare);
 })();
 </script>
 <div class="pp">
@@ -279,7 +356,7 @@ Criterion-RealEstate.com
 </div>
 <script>
 (function(){
-  var NAME = "paul", SELF = "ozmQvYq1snWmlIUvWz2IUw", SNAPSHOT = {"owner": "Paul Durante", "updated": "Oct 22, 2026", "posts": [{"slug": "a5xe94SPOck102pX5QfdyQ", "title": "3 Signs It's Time to Sell + QR", "date": "Oct 22, 2026", "thumb": "thumbs/a5xe94SPOck102pX5QfdyQ.jpg", "count": 5}, {"slug": "WPO1nvlXdC6rsmL6k0lsUQ", "title": "Ready to Stop Renting + QR", "date": "Oct 22, 2026", "thumb": "thumbs/WPO1nvlXdC6rsmL6k0lsUQ.jpg", "count": 1}, {"slug": "fFwuDJZ87lZWdQyhU6eXqQ", "title": "Myth vs. Fact + QR", "date": "Oct 22, 2026", "thumb": "thumbs/fFwuDJZ87lZWdQyhU6eXqQ.jpg", "count": 5}, {"slug": "2thBxZfEGHujWEX3SYPxgQ", "title": "Seller Checklist + QR", "date": "Oct 22, 2026", "thumb": "thumbs/2thBxZfEGHujWEX3SYPxgQ.jpg", "count": 4}, {"slug": "TKOmFZiWMyxgDJdV3MSD4g", "title": "Better Call Paul + QR", "date": "Oct 22, 2026", "thumb": "thumbs/TKOmFZiWMyxgDJdV3MSD4g.jpg", "count": 1}, {"slug": "NvDVVyVHHK5aDi3NhlqqEg", "title": "Better Call Paul (Square) + QR", "date": "Oct 22, 2026", "thumb": "thumbs/NvDVVyVHHK5aDi3NhlqqEg.jpg", "count": 1}, {"slug": "ozmQvYq1snWmlIUvWz2IUw", "title": "3 Signs It's Time to Sell", "date": "Oct 21, 2026", "thumb": "thumbs/ozmQvYq1snWmlIUvWz2IUw.jpg", "count": 5}, {"slug": "RT6EqaGma9sNBMNmm6H6ig", "title": "Ready to Stop Renting", "date": "Oct 21, 2026", "thumb": "thumbs/RT6EqaGma9sNBMNmm6H6ig.jpg", "count": 1}, {"slug": "0WDKy3g8P7U10mj87eUYKw", "title": "Myth vs. Fact", "date": "Oct 21, 2026", "thumb": "thumbs/0WDKy3g8P7U10mj87eUYKw.jpg", "count": 5}, {"slug": "1GPSSxWaHkHK1blD9YCLIQ", "title": "Seller Checklist", "date": "Oct 21, 2026", "thumb": "thumbs/1GPSSxWaHkHK1blD9YCLIQ.jpg", "count": 4}, {"slug": "vezPTXiPpT21GaQzem8HAw", "title": "Better Call Paul", "date": "Oct 21, 2026", "thumb": "thumbs/vezPTXiPpT21GaQzem8HAw.jpg", "count": 2}]};
+  var NAME = "paul", SELF = "ozmQvYq1snWmlIUvWz2IUw", SNAPSHOT = {"owner": "Paul Durante", "updated": "Oct 24, 2026", "posts": [{"slug": "a5xe94SPOck102pX5QfdyQ", "title": "3 Signs It's Time to Sell + QR", "date": "Oct 22, 2026", "thumb": "thumbs/a5xe94SPOck102pX5QfdyQ.jpg", "count": 5}, {"slug": "WPO1nvlXdC6rsmL6k0lsUQ", "title": "Ready to Stop Renting + QR", "date": "Oct 22, 2026", "thumb": "thumbs/WPO1nvlXdC6rsmL6k0lsUQ.jpg", "count": 1}, {"slug": "fFwuDJZ87lZWdQyhU6eXqQ", "title": "Myth vs. Fact + QR", "date": "Oct 22, 2026", "thumb": "thumbs/fFwuDJZ87lZWdQyhU6eXqQ.jpg", "count": 5}, {"slug": "2thBxZfEGHujWEX3SYPxgQ", "title": "Seller Checklist + QR", "date": "Oct 22, 2026", "thumb": "thumbs/2thBxZfEGHujWEX3SYPxgQ.jpg", "count": 4}, {"slug": "TKOmFZiWMyxgDJdV3MSD4g", "title": "Better Call Paul + QR", "date": "Oct 22, 2026", "thumb": "thumbs/TKOmFZiWMyxgDJdV3MSD4g.jpg", "count": 1}, {"slug": "NvDVVyVHHK5aDi3NhlqqEg", "title": "Better Call Paul (Square) + QR", "date": "Oct 22, 2026", "thumb": "thumbs/NvDVVyVHHK5aDi3NhlqqEg.jpg", "count": 1}, {"slug": "ozmQvYq1snWmlIUvWz2IUw", "title": "3 Signs It's Time to Sell", "date": "Oct 21, 2026", "thumb": "thumbs/ozmQvYq1snWmlIUvWz2IUw.jpg", "count": 5}, {"slug": "RT6EqaGma9sNBMNmm6H6ig", "title": "Ready to Stop Renting", "date": "Oct 21, 2026", "thumb": "thumbs/RT6EqaGma9sNBMNmm6H6ig.jpg", "count": 1}, {"slug": "0WDKy3g8P7U10mj87eUYKw", "title": "Myth vs. Fact", "date": "Oct 21, 2026", "thumb": "thumbs/0WDKy3g8P7U10mj87eUYKw.jpg", "count": 5}, {"slug": "1GPSSxWaHkHK1blD9YCLIQ", "title": "Seller Checklist", "date": "Oct 21, 2026", "thumb": "thumbs/1GPSSxWaHkHK1blD9YCLIQ.jpg", "count": 4}, {"slug": "vezPTXiPpT21GaQzem8HAw", "title": "Better Call Paul", "date": "Oct 21, 2026", "thumb": "thumbs/vezPTXiPpT21GaQzem8HAw.jpg", "count": 2}]};
   var BASE = "../catalog/", html = document.documentElement;
   var btn = document.getElementById("pp-open"), closeBtn = document.getElementById("pp-close");
   var drawer = document.getElementById("pp-drawer"), scrim = document.getElementById("pp-scrim");
