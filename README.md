@@ -89,6 +89,6 @@ No environment variables are required. The page holds no secrets; the endpoint c
 
 ## What's on the page
 
-The header carries the Criterion wordmark and the phone link `(475) 897-5114`. The footer is the Equal Housing Opportunity mark and “Criterion Real Estate LLC, licensed in CT & NY”.
+The header carries the Criterion wordmark. The opening screen states “Takes about 60 seconds” above Get started. The footer is the Equal Housing Opportunity mark and “Criterion Real Estate LLC, licensed in CT & NY”. The office phone number is not shown on this page or on the report-link page.
 
 The form is one question per screen, with a progress bar and a quiet “About N seconds left” note that counts down. Six short questions come first (intent, reason for moving, timeline, optional home-value guess, what matters in an agent, optional notes). Choice questions advance on tap and can be skipped. The guess and the notes can be left blank. Then the page asks for a full property address (street, city or town, state defaulting to CT, and ZIP), name, phone, email, and SMS consent. Street, city, ZIP, and phone are required. Name, email, the quiz answers, and the SMS checkbox are optional. A thank-you state follows a successful submit. Leaving after a valid address and phone still posts the lead.

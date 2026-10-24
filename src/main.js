@@ -21,6 +21,7 @@ import {
   captureAttribution,
   composeAddress,
   parseAddress,
+  QUIZ_SECONDS,
   timeLeftLabel,
   validate,
 } from "./lead.js";
@@ -294,12 +295,15 @@ function renderIntro() {
   const copy = document.createElement("p");
   copy.textContent =
     "A few quick questions, then your address. A free, no-obligation market analysis prepared by our local team — not an automated estimate.";
+  const time = document.createElement("p");
+  time.className = "intro-time";
+  time.textContent = `Takes about ${QUIZ_SECONDS} seconds`;
   const button = document.createElement("button");
   button.type = "button";
   button.className = "pill";
   button.textContent = "Get started";
   button.addEventListener("click", () => setStep(0));
-  wrap.append(title, copy, button);
+  wrap.append(title, copy, time, button);
   return wrap;
 }
 
