@@ -214,9 +214,10 @@
     <button id="shareBtn" type="button" class="share loading mob-only" data-share="0" disabled data-ready="📤&nbsp; Share Post">⏳&nbsp; Loading pictures…</button>
     <p class="hint mob-only">Copies the caption and opens your share menu with all 4 pictures. Pick Instagram, Facebook or LinkedIn, then paste the caption.</p>
     <p class="hint tip mob-only">On Android, tap Save all, then pick the photos in Instagram.</p>
+    <a class="btn post desk-only" id="quickPostIG0" data-post="ig" data-cap="0" data-status="postStatus" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="currentColor" opacity=".18"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.2" cy="7.8" r="1.1" fill="currentColor"/></svg>Post on Instagram</a>
     <a class="btn post desk-only" id="quickPostFB0" data-post="fb" data-cap="0" data-status="postStatus" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg>Post on Facebook</a>
     <a class="btn post desk-only" id="quickPostLI0" data-post="li" data-cap="0" data-status="postStatus" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg>Post on LinkedIn</a>
-    <p class="hint desk-only">Each button copies the caption, downloads all 4 pictures, and opens the site in a new tab. Start a post, paste the caption, and attach the pictures.</p>
+    <p class="hint desk-only">Each button copies the caption, downloads all 4 pictures in one ZIP file, and opens the site in a new tab (on Instagram, click <b>+ Create</b>). Start a post, paste the caption, and attach the pictures.</p>
     <p class="hint desk-only poststatus" id="postStatus" role="status" aria-live="polite"></p>
   </div>
   <p class="hint" style="margin:18px 4px 0">Or do it step by step:</p>
@@ -260,6 +261,9 @@ Criterion-RealEstate.com
 (function(){
   var CAPTIONS = [{"label": "Caption", "text": "Thinking of selling? Do these 5 things first (then call Paul!).\n\n1. Declutter and depersonalize.\n2. Tackle the small repairs.\n3. Deep clean, top to bottom.\n4. Boost your curb appeal.\n5. Gather your paperwork.\n\nSave this post for later. And if you'd like to know where your home stands today, scan the QR code on the last slide to request your home value. Can't scan? Visit tinyurl.com/CriterionPaulOnline\n\nPaul Durante | Real Estate Salesperson\nCriterion Real Estate\n203.885.2443\npdurante@criterion-re.com\nCriterion-RealEstate.com\n\n#BetterCallPaul #CriterionRealEstate #SellerTips #ThinkingOfSelling #HomeValue"}];
   var IMAGES = [{"src": "Seller-Checklist-QR-1.png", "name": "Seller-Checklist-QR-1.png", "type": "image/png"}, {"src": "Seller-Checklist-QR-2.png", "name": "Seller-Checklist-QR-2.png", "type": "image/png"}, {"src": "Seller-Checklist-QR-3.png", "name": "Seller-Checklist-QR-3.png", "type": "image/png"}, {"src": "Seller-Checklist-QR-4.png", "name": "Seller-Checklist-QR-4.png", "type": "image/png"}];
+  var ZIP = {"src": "Seller-Checklist-QR-pictures.zip", "name": "Seller-Checklist-QR-pictures.zip"};   // multi-picture pages: one prebuilt ZIP of every picture (computers download this, not N files)
+  function downloadZip(){ var a = document.createElement("a"); a.href = ZIP.src; a.download = ZIP.name; a.rel = "noopener";
+    document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); }, 500); }
   var ua = navigator.userAgent || "";
   var isMobile = (typeof window.CRIT_IS_MOBILE === "boolean") ? window.CRIT_IS_MOBILE
     : (/iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
@@ -327,6 +331,9 @@ Criterion-RealEstate.com
       toast("Press and hold the picture, then tap Save to Photos.");
       return;
     }
+    if (!isMobile && ZIP && idxs.length > 1) {
+      downloadZip(); flash(btn, "✅&nbsp; Downloading…"); toast("Downloading all " + idxs.length + " pictures in one ZIP file…", 4000); return;
+    }
     idxs.forEach(function(i, k){ setTimeout(function(){ download(i); }, k * 700); });
     flash(btn, "✅&nbsp; Downloading…");
     toast(idxs.length > 1 ? "Downloading " + idxs.length + " pictures…" : "Picture downloading…");
@@ -361,6 +368,7 @@ Criterion-RealEstate.com
     // No file sharing (desktop, old phones): download the picture(s) and keep the caption on the clipboard.
     var idxs = IMAGES.map(function(_, i){ return i; });
     if (isMobile && /iPhone|iPad|iPod/i.test(ua)) { window.open(IMAGES[0].src, "_blank"); }
+    else if (!isMobile && ZIP && idxs.length > 1) { downloadZip(); }
     else { idxs.forEach(function(i, n){ setTimeout(function(){ download(i); }, n * 700); }); }
     copied.then(function(ok){
       if (ok) toast(SHARE_TOAST + (idxs.length > 1 ? " Pictures downloading…" : " Picture downloading…"));
@@ -404,22 +412,28 @@ Criterion-RealEstate.com
   // The click handler runs first: it copies the caption synchronously (before the new tab takes focus),
   // then downloads every picture. If the tab doesn't open, the copy and downloads still happen.
   var COMPOSER = {
+    ig: function(){ return "https://www.instagram.com/"; },
     fb: function(){ return "https://www.facebook.com/"; },
     li: function(t){ return "https://www.linkedin.com/feed/?shareActive=true&text=" + encodeURIComponent(t); }
   };
-  var SITE = {fb: "Facebook", li: "LinkedIn"};
+  var SITE = {ig: "Instagram", fb: "Facebook", li: "LinkedIn"};
   Array.prototype.forEach.call(document.querySelectorAll("[data-post]"), function(a){
     var net = a.getAttribute("data-post"), k = parseInt(a.getAttribute("data-cap"), 10) || 0;
     var text = CAPTIONS[k].text, n = IMAGES.length;
     a.href = COMPOSER[net](text);
     a.addEventListener("click", function(){
       var copied = legacyCopy(text) ? Promise.resolve(true) : copyNow(text);   // 1) copy inside the click
-      IMAGES.forEach(function(_, i){ if (i === 0) download(0); else setTimeout(function(){ download(i); }, i * 500); }); // 2) download all
-      var pic = n > 1 ? n + " images" : "image", them = n > 1 ? "images" : "image";
+      // 2) download synchronously, before the new tab opens: one ZIP for several pictures, else the single picture
+      if (ZIP && n > 1) downloadZip(); else download(0);
+      var multi = !!(ZIP && n > 1), them = n > 1 ? "images" : "image";
+      var pic = multi ? (n === 2 ? "both" : "all " + n) + " images downloaded in one ZIP file" : (n > 1 ? n + " images" : "image") + " downloaded";
+      var unzip = multi ? "Open the ZIP, then " : "";
       var status = document.getElementById(a.getAttribute("data-status"));
       copied.then(function(ok){
-        var msg = ok ? "Caption copied and " + pic + " downloaded. Paste the caption in the post and attach the " + them + "."
-                     : (n > 1 ? n + " images" : "Image") + " downloaded. The caption is selected above: copy it, then paste it in the post.";
+        var msg = ok ? "Caption copied and " + pic + ". " + unzip + (unzip ? "paste" : "Paste") + " the caption in the post and attach the " + them + "."
+                     : pic.charAt(0).toUpperCase() + pic.slice(1) + ". The caption is selected above: copy it, then paste it in the post.";
+        if (net === "ig") msg = ok ? "Caption copied and " + pic + ". " + unzip + (unzip ? "click" : "Click") + " + Create, attach the " + them + ", and paste the caption."
+                                   : msg + " On Instagram, click + Create and attach the " + them + ".";
         if (!ok) selectCaption("caption" + (k ? k : ""));
         toast(msg, 7000);
         if (status) status.textContent = "✅ " + msg + " " + SITE[net] + " opened in a new tab.";
