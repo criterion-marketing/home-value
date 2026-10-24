@@ -8,69 +8,130 @@
 <meta name="theme-color" content="#7C3AED">
 <title>Seller Checklist · Criterion</title>
 <style>
-  :root{--p:#7C3AED;--pd:#5B21B6;--pl:#A78BFA;--bg:#F6F3FF;--ink:#0A0A0A;--ok:#15803D}
+  /* Sleek layout (Oct 24 2026, Daniel): post preview on the left, a slim sticky column of compact buttons on the right
+     (900px and wider). Phones stack: preview, then the buttons (Share stays primary), then captions and pictures. */
+  :root{--p:#7C3AED;--pd:#5B21B6;--pl:#A78BFA;--bg:#F7F5FB;--surface:#fff;--ink:#16121F;--muted:#6B6480;--line:#E8E3F3;--soft:#F4F0FD;
+    --ok:#15803D;--okbg:#ECFDF3;--okline:#A6E3BF;--li:#0A66C2;--r:14px;--shadow:0 1px 2px rgba(22,18,31,.04),0 8px 24px -12px rgba(46,16,101,.18)}
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font:20px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-  header{background:linear-gradient(135deg,#0A0A0A 0%,#2E1065 60%,var(--p) 100%);padding:22px 20px 26px;text-align:center;color:#fff}
-  header img{height:40px;width:auto;display:block;margin:0 auto 10px}
-  header h1{font-size:26px;line-height:1.25;margin:0;font-weight:700}
-  main{max-width:640px;margin:0 auto;padding:18px 16px 60px}
-  .step{font-size:16px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--p);margin:26px 4px 10px}
-  .card{background:#fff;border-radius:20px;box-shadow:0 2px 14px rgba(46,16,101,.10);padding:16px;margin-bottom:18px}
-  .imgwrap img{display:block;width:100%;height:auto;border-radius:12px;background:#eee;-webkit-touch-callout:default}
-  .caption{white-space:pre-wrap;word-wrap:break-word;font-size:19px;line-height:1.5;background:#FAF8FF;border:2px solid #E9E1FF;border-radius:14px;padding:16px;margin:0 0 14px;max-height:55vh;overflow:auto;-webkit-user-select:text;user-select:text}
-  button,.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:68px;border:0;border-radius:16px;
-    background:var(--p);color:#fff;font-family:inherit;font-weight:700;font-size:22px;line-height:1.2;padding:14px 18px;cursor:pointer;text-decoration:none;
-    box-shadow:0 4px 0 var(--pd);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-  button:active,.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--pd)}
-  button.secondary{background:#fff;color:var(--pd);border:3px solid var(--p);box-shadow:none;min-height:60px;font-size:20px;margin-top:12px}
-  button.share{background:linear-gradient(135deg,#5B21B6 0%,var(--p) 100%);min-height:72px;font-size:23px}
-  button.share:disabled{opacity:.6;cursor:wait;box-shadow:none;transform:none}
-  .hint.tip{font-size:15px;margin-top:6px}
-  button.share.secondary{background:#fff;min-height:60px;font-size:20px}
-  button.done{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important;box-shadow:0 4px 0 #14532D}
-  .hint{font-size:16px;color:#555;margin:10px 4px 0;text-align:center}
-  .num{font-size:16px;color:#666;margin:0 0 8px;font-weight:600}
-  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(140%);background:#111;color:#fff;font-size:20px;font-weight:700;
-    padding:16px 26px;border-radius:999px;transition:transform .25s ease,opacity .25s;opacity:0;pointer-events:none;z-index:9;max-width:92vw;text-align:center}
-  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-  footer{text-align:center;font-size:14px;color:#777;padding:10px 16px 30px}
-  @media (prefers-color-scheme:dark){
-    body{background:#0F0B1A;color:#F4F1FF}.card{background:#1C1C1F;box-shadow:none}
-    .caption{background:#151219;border-color:#3B2A66;color:#F4F1FF}.hint,.num,footer{color:#BBB}
-    button.secondary,button.share.secondary{background:#1C1C1F;color:var(--pl);border-color:var(--pl)}.step{color:var(--pl)}
-    a.btn.post.secondary{background:#1C1C1F;color:var(--pl);border-color:var(--pl)}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "PP Inter",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  header.hero{background:linear-gradient(120deg,#0A0A0A 0%,#1E0B45 55%,#4C1D95 100%);color:#fff}
+  .hero-in{max-width:960px;margin:0 auto;padding:22px 20px 24px;display:flex;align-items:center;gap:18px}
+  .hero-txt{flex:1;min-width:0}
+  .hero .kicker{margin:0 0 4px;font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#C4B5FD}
+  .hero h1{margin:0;font:400 28px/1.15 "PP DM Serif","DM Serif Display",Georgia,serif;letter-spacing:.005em}
+  .hero img{flex:0 0 auto;height:26px;width:auto;opacity:.92}
+  @media (max-width:599px){.hero-in{padding:18px 18px 20px;flex-direction:column-reverse;align-items:flex-start;gap:12px}.hero h1{font-size:24px}.hero img{height:20px}}
+  main.layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"preview" "actions" "more";gap:18px;max-width:560px;margin:0 auto;padding:18px 14px 56px}
+  .col-preview{grid-area:preview;min-width:0}
+  .col-actions{grid-area:actions;min-width:0}
+  .col-more{grid-area:more;min-width:0}
+  @media (min-width:900px){
+    main.layout{max-width:960px;grid-template-columns:minmax(0,1fr) 330px;grid-template-areas:"preview actions" "more actions";gap:22px 40px;padding:28px 20px 64px}
+    .col-actions{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 88px);overflow:auto;scrollbar-width:thin}
   }
-  /* Device-specific buttons (Oct 24 2026): phones/tablets get the Share sheet, computers get Post on Facebook / LinkedIn.
+  .step{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 2px 8px}
+  .col-preview > .step:first-child{margin-top:0}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin-bottom:14px}
+  .card.pv{padding:12px 0 10px}
+  /* ---------- the action panel ---------- */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:16px}
+  .panel-h{margin:0 0 12px;font-size:13px;font-weight:700;color:var(--ink);letter-spacing:.01em;display:flex;align-items:center;justify-content:space-between}
+  .panel-h small{font-weight:500;color:var(--muted);font-size:12px}
+  .panel .sep{height:1px;background:var(--line);margin:14px -16px}
+  .panel .sub{margin:0 0 8px;font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .stack{display:flex;flex-direction:column;gap:8px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row2 > :only-child{grid-column:1/-1}
+  /* Buttons: one compact component. .primary = filled purple; default = light with a hairline border. */
+  button{font:inherit}
+  .act{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;margin:0;padding:9px 12px;border:1px solid var(--line);border-radius:11px;
+    background:var(--surface);color:var(--ink);font-family:inherit;font-weight:600;font-size:14.5px;line-height:1.2;text-align:left;text-decoration:none;cursor:pointer;
+    box-shadow:0 1px 2px rgba(22,18,31,.04);-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .05s ease}
+  .act:hover{border-color:#CDBDF6;background:#FCFAFF}
+  .act:active{transform:translateY(1px)}
+  .act:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+  .act svg{width:20px;height:20px;flex:0 0 auto;color:var(--p)}
+  .act .go{margin-left:auto;width:15px;height:15px;color:#A79FBD}
+  .act.sm{min-height:38px;padding:7px 11px;font-size:13.5px;justify-content:center;gap:7px}
+  .act.sm svg{width:16px;height:16px}
+  .act.primary{justify-content:center;min-height:50px;border:0;color:#fff;font-size:16px;background:linear-gradient(135deg,#6D28D9 0%,var(--p) 100%);
+    box-shadow:0 8px 18px -8px rgba(124,58,237,.75)}
+  .act.primary:hover{background:linear-gradient(135deg,#5B21B6 0%,#6D28D9 100%)}
+  .act.primary svg{color:#fff}
+  .act:disabled{opacity:.6;cursor:wait;transform:none}
+  .act.done,.act.done:hover{background:var(--okbg)!important;border:1px solid var(--okline)!important;color:#166534!important;box-shadow:none}
+  .act.done svg{color:#16A34A}
+  .hint{font-size:12.5px;line-height:1.45;color:var(--muted);margin:8px 2px 0}
+  .hint b{color:var(--ink);font-weight:600}
+  .num{font-size:12px;color:var(--muted);margin:0 0 6px;font-weight:600}
+  p.ig-crop-tip{margin:-2px 4px 2px;font-size:12px;line-height:1.4}
+  p.li-note{margin:0;padding:9px 11px;border-radius:10px;background:#EEF5FD;border:1px solid #C7DDF5;color:#0B2E59;font-size:12.5px;line-height:1.45}
+  p.li-note[hidden],html.is-desktop p.li-note[hidden]{display:none!important}
+  p.li-note .li-link{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all;user-select:all}
+  p.li-note .li-link.li-fc{font-family:inherit;font-size:12.5px;word-break:normal;overflow-wrap:anywhere;display:block;margin-top:4px;color:#334155}
+  .poststatus{margin:8px 2px 0;font-size:12.5px;color:var(--ok)!important;font-weight:500}
+  .poststatus:empty{display:none!important}
+  a.hub-top{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 0 0;padding:6px;font-size:13.5px;font-weight:600;color:var(--pd);text-decoration:none;border-radius:8px}
+  a.hub-top:hover{background:var(--soft)}
+  a.hub-top svg{width:15px;height:15px}
+  /* ---------- captions (tabs) and pictures ---------- */
+  .tabs{display:flex;gap:4px;padding:3px;margin:0 0 12px;border-radius:10px;background:var(--soft)}
+  .tabs button{flex:1;min-height:34px;border:0;border-radius:8px;background:none;color:var(--pd);font-size:13.5px;font-weight:600;cursor:pointer}
+  .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(46,16,101,.15)}
+  .cap-panel[hidden]{display:none}
+  .caption{white-space:pre-wrap;word-wrap:break-word;font-size:14.5px;line-height:1.55;background:#FBFAFE;border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin:0 0 10px;max-height:260px;overflow:auto;-webkit-user-select:text;user-select:text}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px}
+  .btnrow .act.sm{width:auto;flex:1 1 150px}
+  .pics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  @media (min-width:600px){.pics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  .pics.one{grid-template-columns:minmax(0,1fr);max-width:360px}
+  .pic{display:flex;flex-direction:column;gap:8px;padding:8px;margin:0}
+  .imgwrap img{display:block;width:100%;height:auto;border-radius:8px;background:#eee;-webkit-touch-callout:default}
+  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140%);background:rgba(22,18,31,.94);color:#fff;font-size:14px;font-weight:500;
+    padding:10px 18px;border-radius:999px;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);transition:transform .25s ease,opacity .25s;opacity:0;pointer-events:none;
+    z-index:70;max-width:min(92vw,520px);text-align:center;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0D0A16;--surface:#17131F;--ink:#F4F1FF;--muted:#A39DB8;--line:#2A2340;--soft:#221B33;--okbg:#0F2A1B;--okline:#1F6B3F}
+    .caption{background:#120F1A}.act:hover{background:#1D1828;border-color:#4C3A80}.act.done,.act.done:hover{color:#BBF7D0!important}
+    .act .go{color:#6E6787}.act svg{color:var(--pl)}.act.primary svg{color:#fff}
+    p.li-note{background:#0E1B2B;border-color:#24466E;color:#CFE3FA}p.li-note .li-link.li-fc{color:#B9C8DA}
+    a.hub-top{color:var(--pl)}.poststatus{color:#4ADE80!important}
+  }
+  /* Device-specific buttons (Oct 24 2026): phones/tablets get the Share sheet, computers get Post on Instagram / Facebook / LinkedIn.
      <html> gets .is-mobile or .is-desktop from the detection script below. With no JS, the phone layout shows. */
   .desk-only{display:none!important}
   html.is-desktop .mob-only{display:none!important}
   html.is-desktop .desk-only{display:flex!important}
-  html.is-desktop p.desk-only{display:block!important}
-  a.btn.post{min-height:68px}
-  a.btn.post svg{width:28px;height:28px;flex:0 0 auto}
-  a.btn.post + a.btn.post{margin-top:12px}
-  a.btn.post.secondary{background:#fff;color:var(--pd);border:3px solid var(--p);box-shadow:none;min-height:60px;font-size:20px;margin-top:12px}
-  .poststatus{font-weight:600;color:var(--ok)!important}
-  p.ig-crop-tip{margin:8px 2px 4px;text-align:left;font-size:17px}
-  p.li-note{margin:12px 0 4px;padding:12px 14px;border-radius:12px;background:#EEF6FF;border:2px solid #0A66C2;color:#0B2E59;font-size:18px;line-height:1.4;text-align:left}
-  p.li-note[hidden],html.is-desktop p.li-note[hidden]{display:none!important}
-  p.li-note .li-link{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;word-break:break-all;user-select:all}
-  p.li-note .li-link.li-fc{font-family:inherit;font-size:17px;word-break:normal;overflow-wrap:anywhere;display:block;margin-top:6px}
-  a.hub-top{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;max-width:640px;min-height:44px;padding:10px 16px;
-    border-radius:999px;background:#fff;color:var(--pd);border:2px solid var(--p);font-weight:700;font-size:18px;text-decoration:none}
-  a.hub-top:hover{background:#F3EEFF}
+  html.is-desktop p.desk-only,html.is-desktop div.desk-only.block{display:block!important}
 
-  .fc-card{border:3px solid #0A66C2!important;background:#F3F8FE!important}
-  .fc-card .fc-label{margin:0 2px 10px;font-weight:800;font-size:19px;color:#0B2E59;text-align:left}
-  .fc-card .fc-text{white-space:pre-wrap;word-wrap:break-word;font-size:18px;line-height:1.5;background:#fff;border:2px solid #BFD7F2;border-radius:14px;
-    padding:14px;margin:0 0 12px;color:#0A0A0A;user-select:all;-webkit-user-select:all}
-  .fc-card button.fc-copy{background:#0A66C2;box-shadow:0 4px 0 #084B8F;color:#fff}
-  .fc-card button.fc-copy.done{background:#15803D;box-shadow:0 4px 0 #14532D}
-  .fc-card .fc-status{min-height:1.4em;margin:8px 2px 0;font-weight:700;color:#15803D;text-align:center}
-  @media (prefers-color-scheme:dark){.fc-card{background:#0E1B2B!important}.fc-card .fc-label{color:#CFE3FA}
-    .fc-card .fc-text{background:#151219;color:#F4F1FF;border-color:#2A4A70}}
+  .fc-card{margin:0}
+  .fc-card .fc-label{margin:0 0 8px;font-size:12.5px;font-weight:600;color:var(--ink,#16121F);display:flex;align-items:center;gap:6px;text-align:left}
+  .fc-card .fc-label svg{width:15px;height:15px;color:#0A66C2;flex:0 0 auto}
+  .fc-card .fc-row{display:flex;align-items:center;gap:6px;padding:4px 4px 4px 11px;border:1px solid var(--line,#E8E3F3);border-radius:11px;background:#FBFAFE}
+  .fc-card .fc-text{flex:1;min-width:0;font-size:13px;line-height:1.4;color:var(--muted,#6B6480);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;
+    user-select:all;-webkit-user-select:all;padding:6px 0}
+  .fc-card.open .fc-text{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink,#16121F)}
+  .fc-card .fc-row:has(.fc-text:focus-visible){outline:2px solid #7C3AED;outline-offset:2px}
+  .fc-card .fc-text:focus{outline:none}
+  .fc-card button.fc-copy{flex:0 0 auto;align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:34px;margin:0;padding:6px 11px;border:0;border-radius:8px;
+    background:#0A66C2;color:#fff;font-family:inherit;font-size:13px;font-weight:600;line-height:1;cursor:pointer;box-shadow:none;width:auto;
+    -webkit-tap-highlight-color:transparent;transition:background .15s}
+  .fc-card button.fc-copy:hover{background:#0958A8}
+  .fc-card button.fc-copy:focus-visible{outline:2px solid #0A66C2;outline-offset:2px}
+  .fc-card button.fc-copy svg{width:15px;height:15px}
+  .fc-card button.fc-copy.done{background:#15803D}
+  .fc-card .fc-status{margin:6px 2px 0;font-size:12px;font-weight:500;color:#15803D;text-align:left}
+  .fc-card .fc-status:empty{display:none}
+  #fc-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140%);background:rgba(22,18,31,.94);color:#fff;font:500 14px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:10px 18px;border-radius:999px;opacity:0;transition:transform .25s ease,opacity .25s;pointer-events:none;z-index:70}
+  #fc-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  @media (prefers-color-scheme:dark){.fc-card .fc-row{background:#120F1A;border-color:#2A2340}.fc-card .fc-label svg{color:#7FB5EE}.fc-card .fc-status{color:#4ADE80}}
 </style>
 <script id="device-detect">
 (function(){
@@ -88,12 +149,12 @@
 })();
 </script>
 <style id="pv-style">
-  .pv{padding:14px 0 12px;overflow:hidden}
+  .pv{padding:12px 0 10px;overflow:hidden}
   .pv button{display:inline-flex;align-items:center;justify-content:center;gap:0;width:auto;min-height:0;margin:0;padding:0;border:0;border-radius:0;
     background:none;box-shadow:none;color:inherit;font:inherit;line-height:inherit;transform:none;cursor:pointer}
   .pv button:active{transform:none;box-shadow:none}
-  .pv-toggle{display:flex;gap:4px;margin:0 14px 14px;padding:4px;border-radius:999px;background:#EFEAFB}
-  .pv .pv-tg{flex:1;min-height:42px;border-radius:999px;font-size:17px;font-weight:700;color:#5B21B6}
+  .pv-toggle{display:flex;gap:4px;margin:0 12px 12px;padding:3px;border-radius:10px;background:var(--soft,#F4F0FD)}
+  .pv .pv-tg{flex:1;min-height:34px;border-radius:8px;font-size:13.5px;font-weight:600;color:#5B21B6}
   .pv .pv-tg[aria-pressed="true"]{background:#fff;color:#0A0A0A;box-shadow:0 1px 4px rgba(46,16,101,.18)}
   .pv-post{background:#fff;color:#111;border-top:1px solid #ECECEC;border-bottom:1px solid #ECECEC;font-size:15px;line-height:1.4}
   .pv-head{display:flex;align-items:center;gap:10px;padding:10px 12px}
@@ -135,10 +196,10 @@
   .pv[data-mode="feed"] .pv-cap-top,.pv[data-mode="feed"] .pv-react,.pv[data-mode="feed"] .pv-sub{display:none}
   .pv[data-mode="timeline"] .pv-icons,.pv[data-mode="timeline"] .pv-cap-bottom{display:none}
   .pv[data-mode="timeline"] .pv-dots{padding-bottom:2px}
-  .pv-note{font-size:15px!important;margin:12px 14px 0!important}
-  @media (min-width:600px){.pv-post{border:1px solid #ECECEC;border-radius:10px;margin:0 14px;overflow:hidden}}
+  .pv-note{font-size:12px!important;margin:10px 14px 0!important;text-align:center}
+  @media (min-width:600px){.pv-post{border:1px solid #ECECEC;border-radius:10px;margin:0 12px;overflow:hidden}}
   @media (prefers-color-scheme:dark){
-    .pv-toggle{background:#2A2340}.pv .pv-tg{color:#C4B5FD}.pv .pv-tg[aria-pressed="true"]{background:#0F0B1A;color:#fff}
+    .pv-toggle{background:#221B33}.pv .pv-tg{color:#C4B5FD}.pv .pv-tg[aria-pressed="true"]{background:#0F0B1A;color:#fff}
     .pv-post{background:#000;color:#F5F5F5;border-color:#262626}.pv-cap{color:#F5F5F5}.pv-icons,.pv-kebab{color:#F5F5F5}
     .pv-media{background:#121212}.pv-av{background:#3A3A3C;color:#E5E5EA}.pv-sub,.pv-react{color:#B0B3B8}.pv-react{border-color:#3A3B3C}
     .pv-dots i{background:#555}.pv-dots i.on{background:#A78BFA}
@@ -211,35 +272,14 @@
     Past Posts<span class="pp-n" id="pp-n"></span>
   </button>
 </div>
-<header>
-  <img src="data:image/png;base64,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" alt="Criterion">
-  <h1>Seller Checklist</h1>
+<header class="hero">
+  <div class="hero-in">
+    <div class="hero-txt"><p class="kicker">Ready to share</p><h1>Seller Checklist</h1></div>
+    <img src="data:image/png;base64,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" alt="Criterion">
+  </div>
 </header>
-<main>
-  <a class="hub-top" id="hubTop" href="../paul/"><span aria-hidden="true">📌</span> All my posts</a>
-
-  <div class="step">Quick share</div>
-  <div class="card">
-    <button id="shareBtn" type="button" class="share loading mob-only" data-share="0" disabled data-ready="📤&nbsp; Share Post">⏳&nbsp; Loading pictures…</button>
-    <p class="hint mob-only">Copies the Instagram caption (each app below has its own Share button too) and opens your share menu with all 4 pictures. Pick Instagram, Facebook or LinkedIn, then paste the caption.</p>
-    <p class="hint tip mob-only">On Android, tap Save all, then pick the photos in Instagram.</p>
-    <a class="btn post desk-only" id="quickPostIG0" data-post="ig" data-cap="0" data-status="postStatus" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="currentColor" opacity=".18"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.2" cy="7.8" r="1.1" fill="currentColor"/></svg>Post on Instagram</a>
-    <p class="hint desk-only ig-crop-tip">📐 In Instagram, click the crop icon and choose <b>Original</b> so nothing gets cut off.</p>
-    <a class="btn post desk-only" id="quickPostFB1" data-post="fb" data-cap="1" data-status="postStatus" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg>Post on Facebook</a>
-    <a class="btn post desk-only" id="quickPostLI2" data-post="li" data-cap="2" data-status="postStatus" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg>Post on LinkedIn</a>
-    <p class="desk-only li-note" id="liNotequickPostLI2" role="status" aria-live="polite" hidden></p>
-    <p class="hint desk-only">Each button copies that site's caption, downloads all 4 pictures in one ZIP file, and opens the site in a new tab (on Instagram, click <b>+ Create</b>). Start a post, paste the caption, and attach the pictures. On LinkedIn the caption is filled in for you without links, and the first comment (with the link) is copied so you can paste it right after you post.</p>
-    <p class="hint desk-only poststatus" id="postStatus" role="status" aria-live="polite"></p>
-  </div>
-
-  <div class="step">First comment</div>
-  <div class="card fc-card" id="fcCard">
-    <p class="fc-label"><span aria-hidden="true">💬</span> Paste this as your first comment on LinkedIn.</p>
-    <div class="fc-text" id="fcText">Curious what your home is worth in today&#x27;s market? Get your free home value here: https://tinyurl.com/CriterionPaulOnline</div>
-    <button type="button" class="fc-copy" id="fcCopy" data-fc-copy="fcText" data-fc-status="fcStatus">📋&nbsp; Copy First Comment</button>
-    <p class="fc-status" id="fcStatus" role="status" aria-live="polite"></p>
-  </div>
-
+<main class="layout">
+<section class="col-preview">
   <div class="step">Preview</div>
   <div class="card pv" id="pv" data-mode="feed">
     <div class="pv-toggle" role="group" aria-label="Preview style"><button type="button" class="pv-tg" data-pv-mode="feed" aria-pressed="true">Photo feed</button><button type="button" class="pv-tg" data-pv-mode="timeline" aria-pressed="false">Timeline</button></div>
@@ -255,11 +295,46 @@
     <p class="hint pv-note">This is roughly how your post will look. Each app may crop or style it a little differently.</p>
   </div>
 
-  <p class="hint" style="margin:18px 4px 0">Or do it step by step:</p>
-  <div class="step">Step 1 · Pick where you're posting</div>
-  <p class="hint" style="text-align:left;margin-top:0">Each app gets its own caption. Copy the one that matches where you're posting.</p>
-  <div class="card">
-    <p class="num">Instagram</p>
+</section>
+<aside class="col-actions" aria-label="Share this post">
+  <div class="panel">
+    <p class="panel-h">Share this post<small>4 pictures</small></p>
+    <div class="stack">
+    <button id="shareBtn" type="button" class="act primary share loading mob-only" data-share="0" disabled data-ready="&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M12 3v12&quot;/&gt;&lt;path d=&quot;m7 8 5-5 5 5&quot;/&gt;&lt;path d=&quot;M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Share Post&lt;/span&gt;">Loading pictures…</button>
+    <p class="hint mob-only" style="margin-top:0">Copies the Instagram caption and opens your share menu with all 4 pictures. Pick an app, then paste.</p>
+    <p class="hint mob-only">On Android, tap Save all, then pick the photos in Instagram.</p>
+    <a class="act post desk-only" id="quickPostIG0" data-post="ig" data-cap="0" data-status="postStatus" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="currentColor" opacity=".18"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.2" cy="7.8" r="1.1" fill="currentColor"/></svg><span>Post on Instagram</span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+    <p class="hint desk-only ig-crop-tip">📐 In Instagram, click the crop icon and choose <b>Original</b> so nothing gets cut off.</p>
+    <a class="act post desk-only" id="quickPostFB1" data-post="fb" data-cap="1" data-status="postStatus" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg><span>Post on Facebook</span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+    <a class="act post desk-only" id="quickPostLI2" data-post="li" data-cap="2" data-status="postStatus" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg><span>Post on LinkedIn</span><svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+    <p class="desk-only li-note" id="liNotequickPostLI2" role="status" aria-live="polite" hidden></p>
+    </div>
+    <p class="hint desk-only">Each button copies that site's caption, downloads all 4 pictures (one ZIP), and opens the site in a new tab. LinkedIn gets the caption without links, and the first comment is copied for you.</p>
+    <p class="hint desk-only poststatus" id="postStatus" role="status" aria-live="polite"></p>
+
+    <div class="sep"></div>
+    <div class="fc-card" id="fcCard">
+    <p class="fc-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.3 7.5L3.5 20.5l1.4-4.5a8.4 8.4 0 1 1 15.6-4.4z"/></svg><span>Paste this as your first comment on LinkedIn.</span></p>
+    <div class="fc-row">
+      <div class="fc-text" id="fcText" tabindex="0" title="Curious what your home is worth in today&#x27;s market? Get your free home value here: https://tinyurl.com/CriterionPaulOnline">Curious what your home is worth in today&#x27;s market? Get your free home value here: https://tinyurl.com/CriterionPaulOnline</div>
+      <button type="button" class="fc-copy" id="fcCopy" data-fc-copy="fcText" data-fc-status="fcStatus" aria-label="Copy first comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg><span>Copy</span></button>
+    </div>
+    <p class="fc-status" id="fcStatus" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="sep"></div>
+    <p class="sub">Downloads</p>
+    <div class="row2"><button type="button" class="act sm" id="saveAll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg><span>Save all 4</span></button><a class="act sm" id="pdfBtn" href="Seller-Checklist-LinkedIn.pdf" download="Seller-Checklist-LinkedIn.pdf" title="Download LinkedIn PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span>LinkedIn PDF</span></a></div>
+
+    <a class="hub-top" id="hubTop" href="../paul/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span>All my posts</span></a>
+
+  </div>
+</aside>
+<section class="col-more">
+  <div class="step">Captions</div>
+  <div class="card caps">
+    <div class="tabs" role="tablist" aria-label="Caption for"><button type="button" role="tab" data-tab="capPanel0" aria-selected="true">Instagram</button><button type="button" role="tab" data-tab="capPanel1" aria-selected="false">Facebook</button><button type="button" role="tab" data-tab="capPanel2" aria-selected="false">LinkedIn</button></div>
+    <div class="cap-panel" id="capPanel0" role="tabpanel">
     <div class="caption" id="caption">Thinking of selling? Do these 5 things first (then call Paul!).
 
 1. Declutter and depersonalize.
@@ -277,15 +352,15 @@ pdurante@criterion-re.com
 Criterion-RealEstate.com
 
 #BetterCallPaul #RealEstate #CriterionRealEstate #HomeSelling #SellerTips #ThinkingOfSelling</div>
-    <button id="copyBtn0" type="button" data-copy="0">📋&nbsp; Copy Instagram Caption</button>
-    <button id="shareBtn0" type="button" class="share secondary loading mob-only" data-share="0" disabled data-ready="📤&nbsp; Share to Instagram">⏳&nbsp; Loading pictures…</button>
-    <a class="btn post desk-only secondary" id="postIG0" data-post="ig" data-cap="0" data-status="postStatus0" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="currentColor" opacity=".18"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.2" cy="7.8" r="1.1" fill="currentColor"/></svg>Post on Instagram</a>
-    <p class="hint desk-only ig-crop-tip">📐 In Instagram, click the crop icon and choose <b>Original</b> so nothing gets cut off.</p>
+    <div class="btnrow">
+    <button id="copyBtn0" type="button" class="act sm" data-copy="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg><span>Copy Instagram caption</span></button>
+    <button id="shareBtn0" type="button" class="act sm share loading mob-only" data-share="0" disabled data-ready="&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M12 3v12&quot;/&gt;&lt;path d=&quot;m7 8 5-5 5 5&quot;/&gt;&lt;path d=&quot;M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Share to Instagram&lt;/span&gt;">Loading pictures…</button>
+    <a class="act post desk-only sm" id="postIG0" data-post="ig" data-cap="0" data-status="postStatus0" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="6" fill="currentColor" opacity=".18"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.2" cy="7.8" r="1.1" fill="currentColor"/></svg><span>Post on Instagram</span></a>
+    </div>
     <p class="hint desk-only poststatus" id="postStatus0" role="status" aria-live="polite"></p>
-    <p class="hint">Then open Instagram, tap where you type the caption, and choose <b>Paste</b>.</p>
-  </div>
-  <div class="card">
-    <p class="num">Facebook</p>
+    <p class="hint">Open Instagram, start a post, add the pictures, and <b>Paste</b> the caption.</p>
+    </div>
+    <div class="cap-panel" id="capPanel1" role="tabpanel" hidden>
     <div class="caption" id="caption1">Thinking of selling? Do these 5 things first (then call Paul!).
 
 1. Declutter and depersonalize.
@@ -303,14 +378,15 @@ pdurante@criterion-re.com
 Criterion-RealEstate.com
 
 #BetterCallPaul #SellerTips</div>
-    <button id="copyBtn1" type="button" data-copy="1">📋&nbsp; Copy Facebook Caption</button>
-    <button id="shareBtn1" type="button" class="share secondary loading mob-only" data-share="1" disabled data-ready="📤&nbsp; Share to Facebook">⏳&nbsp; Loading pictures…</button>
-    <a class="btn post desk-only secondary" id="postFB1" data-post="fb" data-cap="1" data-status="postStatus1" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg>Post on Facebook</a>
+    <div class="btnrow">
+    <button id="copyBtn1" type="button" class="act sm" data-copy="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg><span>Copy Facebook caption</span></button>
+    <button id="shareBtn1" type="button" class="act sm share loading mob-only" data-share="1" disabled data-ready="&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M12 3v12&quot;/&gt;&lt;path d=&quot;m7 8 5-5 5 5&quot;/&gt;&lt;path d=&quot;M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Share to Facebook&lt;/span&gt;">Loading pictures…</button>
+    <a class="act post desk-only sm" id="postFB1" data-post="fb" data-cap="1" data-status="postStatus1" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="12" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M13.4 21v-7.3h2.4l.4-2.9h-2.8V9c0-.8.3-1.4 1.4-1.4h1.5V5.1c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v2.1H8v2.9h2.5V21z"/></svg><span>Post on Facebook</span></a>
+    </div>
     <p class="hint desk-only poststatus" id="postStatus1" role="status" aria-live="polite"></p>
-    <p class="hint">Then open Facebook, start a post, add the pictures, tap where you type, and choose <b>Paste</b>.</p>
-  </div>
-  <div class="card">
-    <p class="num">LinkedIn</p>
+    <p class="hint">Open Facebook, start a post, add the pictures, and <b>Paste</b> the caption.</p>
+    </div>
+    <div class="cap-panel" id="capPanel2" role="tabpanel" hidden>
     <div class="caption" id="caption2">Preparing to sell a home? These five steps can help it make a strong first impression:
 
 1. Declutter and depersonalize.
@@ -328,27 +404,28 @@ pdurante@criterion-re.com
 Criterion-RealEstate.com
 
 #BetterCallPaul #RealEstate #HomeSelling #SellerTips #CriterionRealEstate</div>
-    <button id="copyBtn2" type="button" data-copy="2">📋&nbsp; Copy LinkedIn Caption</button>
-    <button id="shareBtn2" type="button" class="share secondary loading mob-only" data-share="2" disabled data-ready="📤&nbsp; Share to LinkedIn">⏳&nbsp; Loading pictures…</button>
-    <a class="btn post desk-only secondary" id="postLI2" data-post="li" data-cap="2" data-status="postStatus2" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg>Post on LinkedIn</a>
+    <div class="btnrow">
+    <button id="copyBtn2" type="button" class="act sm" data-copy="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg><span>Copy LinkedIn caption</span></button>
+    <button id="shareBtn2" type="button" class="act sm share loading mob-only" data-share="2" disabled data-ready="&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M12 3v12&quot;/&gt;&lt;path d=&quot;m7 8 5-5 5 5&quot;/&gt;&lt;path d=&quot;M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Share to LinkedIn&lt;/span&gt;">Loading pictures…</button>
+    <a class="act post desk-only sm" id="postLI2" data-post="li" data-cap="2" data-status="postStatus2" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1" y="1" width="22" height="22" rx="4" fill="currentColor" opacity=".18"/><path fill="currentColor" d="M6.9 9.5h-2.6V19h2.6zM5.6 5.2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM19.7 13.7c0-2.6-1.4-4.4-3.9-4.4-1.2 0-2.1.6-2.5 1.3V9.5h-2.5V19h2.6v-4.9c0-1.3.3-2.4 1.8-2.4s1.6 1.4 1.6 2.5V19h2.9z"/></svg><span>Post on LinkedIn</span></a>
+    </div>
     <p class="desk-only li-note" id="liNotepostLI2" role="status" aria-live="polite" hidden></p>
     <p class="hint desk-only poststatus" id="postStatus2" role="status" aria-live="polite"></p>
-    <p class="hint">Then open LinkedIn, start a post, add the PDF as a <b>document</b> (or add the pictures), and <b>Paste</b> this as the text.</p>
+    <p class="hint">Open LinkedIn, start a post, add the PDF as a <b>document</b> (or add the pictures), and <b>Paste</b> this as the text.</p>
+    </div>
   </div>
 
-  <div class="step">Step 2 · Save the pictures</div>
-  <div class="card"><button type="button" id="saveAll">💾&nbsp; Save All 4 Pictures</button><p class="hint">Or save them one at a time below.</p></div>
-  <div class="card imgwrap"><p class="num">Picture 1 of 4</p><img src="Seller-Checklist-1.png" alt="Seller Checklist picture 1" loading="eager"><div style="height:12px"></div><button type="button" class="secondary" data-save="0">💾&nbsp; Save Picture 1</button></div>
-  <div class="card imgwrap"><p class="num">Picture 2 of 4</p><img src="Seller-Checklist-2.png" alt="Seller Checklist picture 2" loading="eager"><div style="height:12px"></div><button type="button" class="secondary" data-save="1">💾&nbsp; Save Picture 2</button></div>
-  <div class="card imgwrap"><p class="num">Picture 3 of 4</p><img src="Seller-Checklist-3.png" alt="Seller Checklist picture 3" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="2">💾&nbsp; Save Picture 3</button></div>
-  <div class="card imgwrap"><p class="num">Picture 4 of 4</p><img src="Seller-Checklist-4.png" alt="Seller Checklist picture 4" loading="lazy"><div style="height:12px"></div><button type="button" class="secondary" data-save="3">💾&nbsp; Save Picture 4</button></div>
+  <div class="step">Pictures</div>
+  <div class="pics">
+  <div class="card imgwrap pic"><p class="num">1 of 4</p><img src="Seller-Checklist-1.png" alt="Seller Checklist picture 1" loading="eager"><button type="button" class="act sm" data-save="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg><span>Save 1</span></button></div>
+  <div class="card imgwrap pic"><p class="num">2 of 4</p><img src="Seller-Checklist-2.png" alt="Seller Checklist picture 2" loading="eager"><button type="button" class="act sm" data-save="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg><span>Save 2</span></button></div>
+  <div class="card imgwrap pic"><p class="num">3 of 4</p><img src="Seller-Checklist-3.png" alt="Seller Checklist picture 3" loading="lazy"><button type="button" class="act sm" data-save="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg><span>Save 3</span></button></div>
+  <div class="card imgwrap pic"><p class="num">4 of 4</p><img src="Seller-Checklist-4.png" alt="Seller Checklist picture 4" loading="lazy"><button type="button" class="act sm" data-save="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg><span>Save 4</span></button></div>
+  </div>
   <p class="hint mob-only" id="pressHint">Tip: you can also press and hold a picture and choose <b>Save to Photos</b>.</p>
-  <div class="step">For LinkedIn · Download the PDF</div>
-  <div class="card">
-    <a class="btn" href="Seller-Checklist-LinkedIn.pdf" download="Seller-Checklist-LinkedIn.pdf">📄&nbsp; Download LinkedIn PDF</a>
-    <p class="hint">On LinkedIn, start a post, tap <b>+</b> and choose <b>Add a document</b>, upload this PDF, then paste the LinkedIn caption. It shows up as a swipeable slideshow.</p>
-  </div>
+  <p class="hint" id="pdfHint">LinkedIn PDF: on LinkedIn, start a post, choose <b>Add a document</b>, upload the PDF, then paste the LinkedIn caption. It shows up as a swipeable slideshow.</p>
 
+</section>
 </main>
 <footer>Prepared for you by the Criterion team</footer>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -366,9 +443,17 @@ Criterion-RealEstate.com
     : (/iPhone|iPad|iPod|Android/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
   var toastEl = document.getElementById("toast"), toastTimer;
   function toast(msg, ms){ toastEl.textContent = msg; toastEl.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, ms || 2600); }
+  var CK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   function flash(btn, label){ var orig = btn.getAttribute("data-label") || btn.innerHTML; btn.setAttribute("data-label", orig);
     btn.innerHTML = label; btn.classList.add("done"); setTimeout(function(){ btn.innerHTML = orig; btn.classList.remove("done"); }, 3000); }
 
+  // ---------- Caption tabs ----------
+  Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function(t){
+    t.addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function(x){ x.setAttribute("aria-selected", x === t ? "true" : "false"); });
+      Array.prototype.forEach.call(document.querySelectorAll(".cap-panel"), function(p){ p.hidden = p.id !== t.getAttribute("data-tab"); });
+    });
+  });
   // ---------- Copy caption ----------
   function legacyCopy(text){
     var ta = document.getElementById("fallbackTA");
@@ -379,12 +464,14 @@ Criterion-RealEstate.com
     if (window.getSelection) { try { window.getSelection().removeAllRanges(); } catch(e){} }
     return ok;
   }
-  function selectCaption(id){ var r = document.createRange(); r.selectNodeContents(document.getElementById(id || "caption"));
+  function selectCaption(id){ var el = document.getElementById(id || "caption"), pn = el.closest && el.closest(".cap-panel");
+    if (pn && pn.hidden) { var tb = document.querySelector('[data-tab="' + pn.id + '"]'); if (tb) tb.click(); }
+    var r = document.createRange(); r.selectNodeContents(el);
     var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
   Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function(btn){
     var k = parseInt(btn.getAttribute("data-copy"), 10), text = CAPTIONS[k].text, cid = "caption" + (k ? k : "");
     btn.addEventListener("click", function(){
-      function ok(){ flash(btn, "✅&nbsp; Copied!"); toast(CAPTIONS[k].label + " copied! Now paste it into your post."); }
+      function ok(){ flash(btn, (CK + "Copied!")); toast(CAPTIONS[k].label + " copied! Now paste it into your post."); }
       function fail(){ selectCaption(cid); toast("Caption is selected — tap Copy on the menu."); }
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).then(ok, function(){ legacyCopy(text) ? ok() : fail(); });
@@ -409,7 +496,7 @@ Criterion-RealEstate.com
     var ready = idxs.every(function(i){ return files[i]; });
     if (ready && canShareFiles(idxs.map(function(i){ return files[i]; }))) {
       navigator.share({files: idxs.map(function(i){ return files[i]; })})
-        .then(function(){ flash(btn, "✅&nbsp; Done!"); })
+        .then(function(){ flash(btn, (CK + "Done!")); })
         .catch(function(err){ if (err && err.name === "AbortError") return; fallback(idxs, btn); });
       return;
     }
@@ -429,10 +516,10 @@ Criterion-RealEstate.com
       return;
     }
     if (!isMobile && ZIP && idxs.length > 1) {
-      downloadZip(); flash(btn, "✅&nbsp; Downloading…"); toast("Downloading all " + idxs.length + " pictures in one ZIP file…", 4000); return;
+      downloadZip(); flash(btn, (CK + "Downloading…")); toast("Downloading all " + idxs.length + " pictures in one ZIP file…", 4000); return;
     }
     idxs.forEach(function(i, k){ setTimeout(function(){ download(i); }, k * 700); });
-    flash(btn, "✅&nbsp; Downloading…");
+    flash(btn, (CK + "Downloading…"));
     toast(idxs.length > 1 ? "Downloading " + idxs.length + " pictures…" : "Picture downloading…");
   }
   Array.prototype.forEach.call(document.querySelectorAll("[data-save]"), function(btn){
@@ -480,7 +567,7 @@ Criterion-RealEstate.com
       var p;
       try { p = navigator.share({files: list}); } catch(e){ p = Promise.reject(e); }
       copied.then(function(ok){ toast(ok ? SHARE_TOAST : "Shared. Tap Copy Caption, then paste it in your post."); });
-      Promise.resolve(p).then(function(){ flash(btn, "✅&nbsp; Shared!"); copied.then(function(ok){ if (ok) toast(SHARE_TOAST); }); }, function(err){
+      Promise.resolve(p).then(function(){ flash(btn, (CK + "Shared!")); copied.then(function(ok){ if (ok) toast(SHARE_TOAST); }); }, function(err){
         if (err && err.name === "AbortError") { copied.then(function(ok){ if (ok) toast(SHARE_TOAST); }); return; } // sheet closed; caption still copied
         if (err && err.name === "NotAllowedError") { toast("Tap Share again."); return; }
         shareFallback(copied, k);
@@ -549,8 +636,8 @@ Criterion-RealEstate.com
         }
         if (!ok && !liCopy) selectCaption("caption" + (k ? k : ""));
         toast(liCopy && ok ? NOTE : msg, liCopy ? 9000 : 7000);
-        if (status) status.textContent = "✅ " + msg + " " + SITE[net] + " opened in a new tab.";
-        flash(a, ok ? (fc ? "✅&nbsp; Comment copied &amp; downloaded" : short ? "✅&nbsp; Link copied &amp; downloaded" : "✅&nbsp; Copied &amp; downloaded") : "✅&nbsp; Downloaded");
+        if (status) status.textContent = msg + " " + SITE[net] + " opened in a new tab.";
+        flash(a, ok ? (fc ? (CK + "Comment copied &amp; downloaded") : short ? (CK + "Link copied &amp; downloaded") : (CK + "Copied &amp; downloaded")) : (CK + "Downloaded"));
       });
       // 3) default action: open the composer in a new tab (no preventDefault)
     });
@@ -603,6 +690,7 @@ Criterion-RealEstate.com
 
 <script>
 (function(){
+  var CK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   function legacy(t){ var ta=document.createElement("textarea"); ta.value=t; ta.setAttribute("readonly","");
     ta.style.cssText="position:fixed;top:0;left:0;opacity:0;font-size:16px"; document.body.appendChild(ta);
     ta.focus(); ta.select(); try{ta.setSelectionRange(0,t.length);}catch(e){}
@@ -611,16 +699,23 @@ Criterion-RealEstate.com
   function copy(t){ if(navigator.clipboard&&window.isSecureContext){ try{ return navigator.clipboard.writeText(t).then(function(){return true;},function(){return legacy(t);}); }catch(e){} }
     return Promise.resolve(legacy(t)); }
   window.CRIT_COPY_TEXT = window.CRIT_COPY_TEXT || copy;
+  var tt; function toast(msg){ var el=document.getElementById("toast");
+    if(!el){ el=document.getElementById("fc-toast"); if(!el){ el=document.createElement("div"); el.id="fc-toast"; el.setAttribute("role","status"); document.body.appendChild(el); } }
+    el.textContent=msg; el.classList.add("show"); clearTimeout(tt); tt=setTimeout(function(){ el.classList.remove("show"); },2400); }
   Array.prototype.forEach.call(document.querySelectorAll("[data-fc-copy]"), function(btn){
     var box=document.getElementById(btn.getAttribute("data-fc-copy")), st=document.getElementById(btn.getAttribute("data-fc-status"));
-    var orig=btn.innerHTML, t;
+    var card=box.closest(".fc-card"), orig=btn.innerHTML, t;
+    function toggle(){ if(card) card.classList.toggle("open"); }
+    box.addEventListener("click", toggle);
+    box.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(); } });
     btn.addEventListener("click", function(){
       var text=box.textContent;
       copy(text).then(function(ok){
         clearTimeout(t);
-        if(ok){ btn.innerHTML="\u2705&nbsp; Copied!"; btn.classList.add("done"); if(st) st.textContent="Copied! Paste it as your first comment after you post.";
+        if(ok){ btn.innerHTML=CK+"<span>Copied!</span>"; btn.classList.add("done"); if(st) st.textContent="Copied! Paste it as your first comment after you post.";
+          toast("First comment copied");
           t=setTimeout(function(){ btn.innerHTML=orig; btn.classList.remove("done"); if(st) st.textContent=""; },3000); }
-        else { var r=document.createRange(); r.selectNodeContents(box); var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        else { if(card) card.classList.add("open"); var r=document.createRange(); r.selectNodeContents(box); var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
           if(st) st.textContent="The comment is selected. Tap Copy on the menu."; }
       });
     });
