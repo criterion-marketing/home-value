@@ -59,7 +59,7 @@ window.CONTENT = {
     body: "It opens your guide, quiz results and worksheet right where you left off. You can also save it now:",
     copy: "Copy my link",
     copied: "Copied",
-    noText: "No text in a few minutes? Use the link above, or call us at",
+    noText: "No text in a few minutes? Use the link above.",
     cta: "Go to my game plan",
   },
 
@@ -70,7 +70,7 @@ window.CONTENT = {
     quiz: { title: "Readiness quiz", start: "8 questions, about a minute", done: "{score} of 16 · {band}" },
     worksheet: { title: "Up-front cost worksheet", start: "Add up your own numbers", done: "Your total so far: {total}" },
     linkLabel: "Your personal link",
-    call: "Questions? Call or text the Criterion team",
+    call: "",
   },
 
   saveSpot: { label: "Save my spot", saved: "Saved. Your link opens right here." },
@@ -200,7 +200,7 @@ window.CONTENT = {
         { id: "c16", group: "Moving day", t: "Leave keys, garage openers and manuals for the next people" },
         { id: "c17", group: "Moving day", t: "Lock all doors and windows on your way out" },
       ],
-      outro: "That's the whole path. When you're ready to start, call or text the Criterion team at (475) 897-5114.",
+      outro: "That's the whole path. When you're ready to start, reach out to the Criterion team.",
     },
   ],
 
@@ -268,6 +268,6 @@ window.CONTENT = {
   footer: {
     eho: "Equal Housing Opportunity",
     legal: "Criterion Real Estate LLC, licensed in CT & NY",
-    contact: "The Criterion team · (475) 897-5114",
+    contact: "The Criterion team",
   },
 };

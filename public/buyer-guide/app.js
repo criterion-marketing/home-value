@@ -227,7 +227,7 @@
       '<p class="lead">' + esc(C.sent.body) + "</p>" +
       '<div class="linkbox"><code>' + esc(url) + '</code><button type="button" id="copy">Copy</button></div>' +
       '<div style="margin-top:1.5rem"><a class="pill pill-block" href="' + (next === "result" ? "#/quiz/result" : "#/plan") + '">' + esc(next === "result" ? C.quiz.seeResult : C.sent.cta) + "</a></div>" +
-      '<p class="small muted" style="margin-top:1rem">' + esc(C.sent.noText) + ' <a href="' + C.phoneHref + '"><strong>' + C.phone + "</strong></a>.</p>" +
+      '<p class="small muted" style="margin-top:1rem">' + esc(C.sent.noText) + "</p>" +
       "</section>";
     document.getElementById("copy").onclick = function () { copy(url, this); };
   }
@@ -249,7 +249,7 @@
           (x.bar != null ? '<span class="bar" style="display:block"><i style="width:' + x.bar + '%"></i></span>' : "") + "</span>" + ICON.chev + "</a>";
       }).join("") +
       '<div class="card"><p class="small" style="margin:0;font-weight:600">' + esc(C.hub.linkLabel) + '</p><div class="linkbox" style="margin-top:.5rem"><code>' + esc(resultsUrl()) + '</code><button type="button" id="copy">Copy</button></div></div>' +
-      '<div class="card callrow"><span class="small muted">' + esc(C.hub.call) + '</span><a href="' + C.phoneHref + '">' + C.phone + "</a></div>" +
+      
       "</section>";
     document.getElementById("copy").onclick = function () { copy(resultsUrl(), this); };
   }
