@@ -67,7 +67,7 @@ window.CONTENT = {
       ],
     },
     {
-      id: "keys", label: "Keys", img: "keys", alt: "A modern key fob and house key on a quartz kitchen island",
+      id: "keys", label: "Keys", img: "keys", alt: "A modern house key on a marble kitchen island",
       title: "Keys in hand.",
       line: "Your attorney records your deed with the town clerk. Then it's moving day.",
       moreLabel: "Moving checklist",
