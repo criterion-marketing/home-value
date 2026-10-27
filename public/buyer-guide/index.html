@@ -3,35 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6f6f7">
+<meta name="theme-color" content="#ffffff">
 <meta name="robots" content="noindex, nofollow">
-<title>Your Home Buying Game Plan | Criterion Real Estate</title>
+<title>Your Path Home | Criterion Real Estate</title>
 <meta name="description" content="The Criterion team's step-by-step guide to buying a home in Connecticut, a 1-minute readiness quiz, and an up-front cost worksheet.">
-<meta property="og:title" content="Your Home Buying Game Plan | Criterion Real Estate">
+<meta property="og:title" content="Your Path Home | Criterion Real Estate">
 <meta property="og:description" content="A step-by-step buyer guide, a 1-minute readiness quiz and an up-front cost worksheet from the Criterion team.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://criterion-marketing.github.io/home-value/buyer-guide/img/hero-wide-1280.webp">
 <link rel="icon" type="image/png" href="./favicon.png">
+<link rel="preload" href="./newsreader.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="./img/hero-tall-720.avif" type="image/avif" media="(max-width:859px)">
+<link rel="preload" as="image" href="./img/hero-wide-2048.avif" type="image/avif" media="(min-width:860px)">
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-<div class="page">
+<header class="hdr over" id="hdr">
   <div class="mockbar" id="mockbar" hidden>Prototype: the form doesn't send anything yet.</div>
-  <div class="progress" id="progress-track" hidden role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Progress"><div class="progress__bar" id="progress"></div></div>
-  <header class="header">
-    <a href="#/" aria-label="Criterion Real Estate home"><img class="logo" src="./criterion-logo.png" alt="Criterion Real Estate" width="1200" height="276"></a>
-    <button class="header-action" id="save-spot" type="button" hidden>Save my spot</button>
-  </header>
-  <div class="hp" aria-hidden="true"><label for="company_website">Company website</label><input type="text" id="company_website" tabindex="-1" autocomplete="off"></div>
-  <main class="main" id="main"><noscript><p>Turn on JavaScript to see the buyer guide.</p></noscript></main>
-  <footer class="footer">
-    <div class="eho"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 15 16 4l13 11"/><path d="M7 12v16h18V12"/><path d="M11 17h10M11 22h10"/></svg><span>Equal Housing Opportunity</span></div>
-    <p>Criterion Real Estate LLC, licensed in CT &amp; NY</p>
-    <p>The Criterion team</p>
-  </footer>
-</div>
+  <div class="hdr__in">
+    <a href="#top" data-jump="top" aria-label="Criterion Real Estate, back to top"><img class="logo" src="./criterion-logo.png" alt="Criterion Real Estate" width="1200" height="276"></a>
+    <button class="save-spot" id="save-spot" type="button">Save my spot</button>
+  </div>
+  <div class="rail" id="rail" aria-hidden="true"></div>
+</header>
+<div class="hp" aria-hidden="true"><label for="company_website">Company website</label><input type="text" id="company_website" tabindex="-1" autocomplete="off"></div>
+<main id="main"><noscript><p class="noscript">Turn on JavaScript to see the buyer guide.</p></noscript></main>
+<footer class="footer">
+  <img class="footer__logo" src="./criterion-logo.png" alt="Criterion Real Estate" width="1200" height="276" loading="lazy">
+  <div class="eho"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 15 16 4l13 11"/><path d="M7 12v16h18V12"/><path d="M11 17h10M11 22h10"/></svg><span>Equal Housing Opportunity</span></div>
+  <p>Criterion Real Estate LLC, licensed in CT &amp; NY</p>
+  <p>The Criterion team</p>
+  <p class="footer__fine">Photos are illustrative and do not show listed properties.</p>
+</footer>
 <div class="toast" id="toast" hidden role="status"></div>
 <script src="./content.js"></script>
+<script src="./icons.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
