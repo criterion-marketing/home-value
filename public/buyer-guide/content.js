@@ -121,7 +121,7 @@ window.CONTENT = {
       line: "Add your first name and cell to see your score and next 3 steps. We'll text you the link too.",
       submit: "Show my score",
     },
-    unlocked: { sent: "Link sent to your phone.", tailor: "Tailor my plan" },
+    unlocked: { sent: "Your link is on its way by text.", tailor: "Tailor my plan" },
   },
 
   worksheet: {
@@ -171,8 +171,8 @@ window.CONTENT = {
       skip: "Skip",
     },
     done: {
-      title: "Check your texts.",
-      line: "We just texted you a link that opens your plan right where you left off. You can copy it here too.",
+      title: "You're all set.",
+      line: "We'll text you your plan shortly. It opens right where you left off, and you can copy the link here too.",
       copy: "Copy",
       copied: "Copied",
     },

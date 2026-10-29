@@ -3,17 +3,17 @@
   "use strict";
 
   // ---- Config -------------------------------------------------------------
-  // LIVE = false: the sign-up is a mock. Nothing leaves the phone.
-  // To go live, TraCy sets LIVE to true (see spec-for-tracy.md). The endpoint is the same
-  // public Apps Script web app home-value posts to (site.config.js leadEndpoint).
+  // LIVE = true: sign-ups POST to the shared Apps Script web app (same endpoint as home-value,
+  // site.config.js leadEndpoint). Needs Apps Script v5 (buyer-guide support) deployed first;
+  // see /workspace/buyer-guide/apps-script-v5/. Set LIVE to false to go back to the mock.
   var CONFIG = {
-    LIVE: false,
+    LIVE: true,
     leadEndpoint: "https://script.google.com/macros/s/AKfycbwcpeKoRHzPK2Vbdo5vTW_G8iIvSOhKQIMi0RbnQAMwPJZ39it3tr9JBRPZMmQCGHdS/exec",
     defaultSrc: "buyer-guide",
   };
   var C = window.CONTENT, ICON = window.ICON;
   var STORE = "criterion-buyer-guide-v1";
-  var ATTR_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "src", "id"];
+  var ATTR_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "src", "id", "agent"];
   var NQ = C.quiz.questions.length;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -31,15 +31,16 @@
   // Personal link: ?r=<base64url JSON>. Answers only, plus first name for the greeting.
   function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
   function b64d(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "="; return decodeURIComponent(escape(atob(s))); }
-  function packState() {
+  // signed: force s=1 (the link we text at sign-up must open unlocked, before S.signed flips).
+  function packState(signed) {
     var c = Object.keys(S.checks).filter(function (k) { return S.checks[k]; });
     var w = {}; Object.keys(S.ws).forEach(function (k) { if (S.ws[k]) w[k] = S.ws[k]; });
-    return b64e(JSON.stringify({ v: 2, i: S.rid, n: S.lead.first_name || "", s: S.signed ? 1 : 0, q: S.quiz, c: c, w: w }));
+    return b64e(JSON.stringify({ v: 2, i: S.rid, n: S.lead.first_name || "", s: (signed || S.signed) ? 1 : 0, q: S.quiz, c: c, w: w }));
   }
-  function resultsUrl() {
+  function resultsUrl(signed) {
     var base = location.origin + location.pathname;
     if (location.protocol === "file:") base = "https://criterion-marketing.github.io/home-value/buyer-guide/";
-    return base + "?r=" + packState();
+    return base + "?r=" + packState(signed);
   }
   var returning = false, r = params.get("r");
   if (r) {
@@ -369,7 +370,7 @@
     var X = U.extras, L = S.lead;
     body.innerHTML =
       '<div class="step-in">' +
-      '<p class="kicker">' + ICON("yes") + " Link sent</p>" +
+      '<p class="kicker">' + ICON("yes") + " " + esc(C.quiz.unlocked.sent) + "</p>" +
       '<h2 class="display">' + fmt(X.title, { name: L.first_name }) + "</h2>" +
       '<p class="lede">' + esc(X.line) + "</p>" +
       '<div class="xgroup"><p class="xlab">' + esc(X.town.label) + "</p>" + chips("town", X.town.options, L.town) + "</div>" +
@@ -442,8 +443,8 @@
       intent: "Buy", reason: null, owner_estimate: null, agent_priority: null, street: null, city: L.town || null, state: "CT", zip: null,
       lead_type: "buyer-guide", mailer_id: A.id || null, town: L.town || null, renting: L.renting || null,
       lender_optin: !!L.lender_optin, quiz_score: sc, quiz_band: sc != null ? band(sc).name : null,
-      results_id: S.rid, results_url: resultsUrl(), sms_consent_text: U.consent,
-      lead_event: event,
+      results_id: S.rid, results_url: resultsUrl(true), sms_consent_text: U.consent,
+      lead_event: event, agent: A.agent || null,
     };
   }
   function sendLead(payload) {
